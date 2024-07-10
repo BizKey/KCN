@@ -1,11 +1,11 @@
 services:
   composter_1:
     image: kizyanov/kcn_composter:latest
-    build: .
     container_name: kcn_composter_1
     tty: true
     restart: always
     depends_on:
+     - balancer
      - processor
      - nats
     links:
@@ -16,11 +16,11 @@ services:
   
   composter_2:
     image: kizyanov/kcn_composter:latest
-    build: .
     container_name: kcn_composter_2
     tty: true
     restart: always
     depends_on:
+     - balancer
      - processor
      - nats
     links:
@@ -28,6 +28,17 @@ services:
     environment:
       - CURRENCY=DYM,BONK,LTC,BCH
       - TIME_SHIFT=1min
+
+  balancer:
+    image: kizyanov/kcn_balancer:latest
+    container_name: kcn_balancer
+    tty: true
+    restart: always
+    depends_on:
+      - processor
+      - nats
+    links:
+     - nats:nats
 
   processor:
     image: kizyanov/kcn_processor:latest

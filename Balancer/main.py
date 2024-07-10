@@ -1,13 +1,15 @@
 import asyncio
 import nats
-import orjson
 import uvloop
 from kucoin.client import WsToken
 from kucoin.ws_client import KucoinWsClient
 from loguru import logger
-from kucoin.client import Market, Trade, User, WsToken
-from decouple import config, Csv
+from kucoin.client import WsToken
+from decouple import config
 
+passphrase = config("PASSPHRASE", cast=str)
+key = config("KEY", cast=str)
+secret = config("SECRET", cast=str)
 
 client = WsToken(
     key=key,

@@ -12,8 +12,6 @@ from urllib.parse import urljoin
 from uuid import uuid1
 from decimal import Decimal, ROUND_DOWN
 import aiohttp
-from kucoin.client import Market, Trade, User, WsToken
-from kucoin.ws_client import KucoinWsClient
 from datetime import datetime
 
 
