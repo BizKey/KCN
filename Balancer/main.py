@@ -53,7 +53,7 @@ async def main():
 
     for symbol in order_book.keys():
         await js.publish(
-            "candle",
+            "balance",
             orjson.dumps(
                 {
                     "symbol": f"{symbol}-USDT",
