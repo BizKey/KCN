@@ -26,7 +26,7 @@ async def main():
         symbol = msg["data"]["symbol"]
         price = msg["data"]["candles"][1]
         if history[symbol] != price:
-            logger.info(f"{symbol}:{price}")
+            logger.info(f"Sent -> \t{symbol}:\t{price}")
             await js.publish("candle", orjson.dumps({symbol: price}))
             history[symbol] = price
 
