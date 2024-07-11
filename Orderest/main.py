@@ -40,15 +40,20 @@ def encrypted_msg(msg: str) -> str:
 
 async def get_order_list():
     """Get all active orders."""
-
+    uri_path = "/api/v1/orders"
+    data_json = ""
     now_time = str(int(time.time()) * 1000)
 
-    uri = "/api/v1/orders"
     method = "GET"
 
     params = {"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
 
-    data_json = uri + "?" + "&".join([f"{key}={params[key]}" for key in sorted(params)])
+    strl = []
+    for key in sorted(params):
+        strl.append("{}={}".format(key, params[key]))
+    data_json += "&".join(strl)
+    uri += "?" + data_json
+    uri_path = uri
 
     logger.info(data_json)
 
@@ -57,7 +62,7 @@ async def get_order_list():
         session.get(
             urljoin(base_uri, uri),
             headers={
-                "KC-API-SIGN": encrypted_msg(now_time + method + data_json),
+                "KC-API-SIGN": encrypted_msg(now_time + method + uri_path),
                 "KC-API-TIMESTAMP": now_time,
                 "KC-API-PASSPHRASE": encrypted_msg(passphrase),
                 "KC-API-KEY": key,
@@ -69,7 +74,9 @@ async def get_order_list():
         ) as response,
     ):
         res = await response.json()
-        logger.info(res)
+        if res["code"] != "200000":
+            logger.warning(res)
+        return res
 
 
 async def cancel_order_by_id(id_: str):
