@@ -15,7 +15,6 @@ user = User(
     key=key,
     secret=secret,
     passphrase=passphrase,
-    is_sandbox=False,
 )
 
 
@@ -80,15 +79,15 @@ async def main():
     js = nc.jetstream()
 
     for symbol in order_book.keys():
+        data = {
+            "symbol": f"{symbol}-USDT",
+            "baseincrement": order_book[symbol]["baseincrement"],
+            "available": order_book[symbol]["available"],
+        }
+        logger.info(data)
         await js.publish(
             "balance",
-            orjson.dumps(
-                {
-                    "symbol": f"{symbol}-USDT",
-                    "baseincrement": order_book[symbol]["baseincrement"],
-                    "available": order_book[symbol]["available"],
-                }
-            ),
+            orjson.dumps(data),
         )
 
     async def event(msg: dict) -> None:
