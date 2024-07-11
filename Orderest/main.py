@@ -127,11 +127,11 @@ async def main():
         )
 
         for item in orders["items"]:
-            if servertimestamp > item["createdAt"] + 3600000:
+            if servertimestamp > item["createdAt"] + 3601000:
                 # order was claim more 1 hour ago
                 logger.warning(f"Need cancel:{item}")
 
-                # await cancel_order_by_id(item["id"])
+                trade.cancel_order(item["id"])
 
         await asyncio.sleep(60)
 
