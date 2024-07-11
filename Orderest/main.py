@@ -31,7 +31,6 @@ trade = Trade(
     key=key,
     secret=secret,
     passphrase=passphrase,
-    is_sandbox=False,
 )
 
 

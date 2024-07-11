@@ -22,7 +22,6 @@ market = Market(
     key=key,
     secret=secret,
     passphrase=passphrase,
-    is_sandbox=False,
 )
 
 
