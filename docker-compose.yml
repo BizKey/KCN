@@ -69,6 +69,16 @@ services:
     environment:
       - CURRENCY=LINK,STX,LUNA,ZEC,PEPE2,TON,FET,DYM,MOVR,ELON,NOT,JUP,DYDX,FXS,BOME,TIA,DAO,KDA,ERN,PEPE
 
+  orderest:
+    image: kizyanov/kcn_orderest:latest
+    container_name: kcn_orderest
+    tty: true
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - processor
+      - nats
 
   balancer:
     image: kizyanov/kcn_balancer:latest
