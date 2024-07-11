@@ -4,7 +4,7 @@ from json import loads, dumps
 from decouple import config
 from base64 import b64encode
 from loguru import logger
-from kucoin.client import Trade
+from kucoin.client import Trade, Market
 from decimal import Decimal
 import hmac
 import hashlib
@@ -32,6 +32,8 @@ trade = Trade(
     secret=secret,
     passphrase=passphrase,
 )
+
+market = Market(url="https://api.kucoin.com")
 
 
 def encrypted_msg(msg: str) -> str:
@@ -119,17 +121,15 @@ async def cancel_order_by_id(id_: str):
 
 async def main():
     while True:
+        servertimestamp = market.get_server_timestamp()
         orders = trade.get_order_list(
             **{"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
         )
 
         for item in orders["items"]:
-
-            if datetime.fromtimestamp(int(time.time())) + timedelta(
-                hours=1
-            ) > datetime.fromtimestamp(item["createdAt"] / 1000):
+            if servertimestamp > (item["createdAt"] / 1000) + 3600:
                 # order was claim more 1 hour ago
-                logger.warning(f'Need cancel:{item}')
+                logger.warning(f"Need cancel:{item}")
 
                 # await cancel_order_by_id(item["id"])
 
