@@ -138,17 +138,20 @@ async def main():
             tokens_count = (base_keep - new_balance) / price
             side = "buy"
 
-        await make_margin_limit_order(
-            side=side,
-            price=price_str,
-            symbol=symbol,
-            size=str(
-                tokens_count.quantize(
-                    ledger[symbol]["baseincrement"],
-                    ROUND_DOWN,
-                )
-            ),  # округление
-        )
+        size = str(
+            tokens_count.quantize(
+                ledger[symbol]["baseincrement"],
+                ROUND_DOWN,
+            )
+        )  # around
+
+        if size != "0.0000":
+            await make_margin_limit_order(
+                side=side,
+                price=price_str,
+                symbol=symbol,
+                size=size,
+            )
 
         await msg.ack()
 

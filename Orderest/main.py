@@ -43,7 +43,7 @@ async def get_order_list():
 
     now_time = str(int(time.time()) * 1000)
 
-    method_uri = "/api/v1/orders"
+    uri = "/api/v1/orders"
     method = "GET"
 
     params = {"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
@@ -55,7 +55,7 @@ async def get_order_list():
     async with (
         aiohttp.ClientSession() as session,
         session.get(
-            urljoin(base_uri, method_uri),
+            urljoin(base_uri, uri),
             headers={
                 "KC-API-SIGN": encrypted_msg(now_time + method + method_uri),
                 "KC-API-TIMESTAMP": now_time,
