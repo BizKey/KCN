@@ -48,14 +48,14 @@ async def get_order_list():
 
     params = {"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
 
-    data_json = "&".join([f"{key}={params[key]}" for key in sorted(params)])
+    data_json = uri + "?" + "&".join([f"{key}={params[key]}" for key in sorted(params)])
 
     async with (
         aiohttp.ClientSession() as session,
         session.get(
             urljoin(base_uri, uri),
             headers={
-                "KC-API-SIGN": encrypted_msg(now_time + method + "?" + data_json),
+                "KC-API-SIGN": encrypted_msg(now_time + method + data_json),
                 "KC-API-TIMESTAMP": now_time,
                 "KC-API-PASSPHRASE": encrypted_msg(passphrase),
                 "KC-API-KEY": key,

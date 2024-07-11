@@ -145,7 +145,7 @@ async def main():
             )
         )  # around
 
-        if size != "0.0000":
+        if float(size) != 0.0:
             await make_margin_limit_order(
                 side=side,
                 price=price_str,
