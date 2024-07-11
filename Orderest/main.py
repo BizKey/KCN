@@ -123,14 +123,15 @@ async def main():
             **{"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
         )
 
-        logger.info(orders)
+        for item in orders["items"]:
 
-        # for item in orders["items"]:
-        #     if datetime.fromtimestamp(int(time.time())) + timedelta(
-        #         hours=1
-        #     ) > datetime.fromtimestamp(item["createdAt"] / 1000):
-        #         # order was claim more 1 hour ago
-        #         await cancel_order_by_id(item["id"])
+            if datetime.fromtimestamp(int(time.time())) + timedelta(
+                hours=1
+            ) > datetime.fromtimestamp(item["createdAt"] / 1000):
+                # order was claim more 1 hour ago
+                logger.warning(f'Need cancel:{item}')
+
+                # await cancel_order_by_id(item["id"])
 
         await asyncio.sleep(60)
 
