@@ -38,9 +38,11 @@ order_book = {
 }
 
 
-for symbol in market.get_symbol_list_v2():
-    if symbol in order_book:
-        order_book[symbol].update({"baseincrement": symbol["baseIncrement"]})
+for symbol_object in market.get_symbol_list_v2():
+    if symbol_object["baseCurrency"] in order_book:
+        order_book[symbol_object["baseCurrency"]].update(
+            {"baseincrement": symbol_object["baseIncrement"]}
+        )
 
 
 async def disconnected_cb(*args: list) -> None:
