@@ -85,7 +85,7 @@ async def main():
             "baseincrement": order_book[symbol]["baseincrement"],
             "available": order_book[symbol]["available"],
         }
-        logger.info(data)
+        logger.info(f"{data['symbol']}\t{data['baseincrement']}\t{data['available']}")
         await js.publish(
             "balance",
             orjson.dumps(data),
