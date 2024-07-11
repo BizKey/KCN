@@ -12,7 +12,6 @@ services:
      - nats:nats
     environment:
       - CURRENCY=OP,KCS,WIF,IMX,SUI,APT,ICP,BTC,APE,FRONT,ADA,PEPE,PEPE2,BTC,ETH,AVAX,NOT,TON
-      - TIME_SHIFT=1min
   
   composter_2:
     image: kizyanov/kcn_composter:latest
@@ -27,13 +26,14 @@ services:
      - nats:nats
     environment:
       - CURRENCY=DYM,BONK,LTC,BCH
-      - TIME_SHIFT=1min
 
   balancer:
     image: kizyanov/kcn_balancer:latest
     container_name: kcn_balancer
     tty: true
     restart: always
+    env_file:
+      - .env
     depends_on:
       - processor
       - nats
@@ -46,6 +46,8 @@ services:
     container_name: kcn_processor
     tty: true
     restart: always
+    env_file:
+      - .env
     depends_on:
       - nats
     links:
