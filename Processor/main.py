@@ -155,7 +155,7 @@ async def main():
     async def balance(msg):
         data = loads(msg.data)
         logger.info(
-            f"Change balance:{ledger.get(data['symbol'],{'available':'0'})['available']} \t-> {data['available']}"
+            f"Change balance:{data['symbol']}\t{ledger.get(data['symbol'],{'available':'0'})['available']} \t-> {data['available']}"
         )
         ledger.update(
             {
