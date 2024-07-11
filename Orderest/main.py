@@ -120,7 +120,7 @@ async def cancel_order_by_id(id_: str):
 async def main():
     while True:
         orders = trade.get_order_list(
-            {"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
+            **{"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
         )
 
         logger.info(orders)
