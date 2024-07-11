@@ -40,7 +40,8 @@ def encrypted_msg(msg: str) -> str:
 
 async def get_order_list():
     """Get all active orders."""
-    uri_path = "/api/v1/orders"
+    uri = "/api/v1/orders"
+    uri_path = uri
     data_json = ""
     now_time = str(int(time.time()) * 1000)
 
@@ -55,7 +56,7 @@ async def get_order_list():
     uri += "?" + data_json
     uri_path = uri
 
-    logger.info(data_json)
+    logger.info(uri_path)
 
     async with (
         aiohttp.ClientSession() as session,
