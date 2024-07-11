@@ -48,7 +48,7 @@ async def get_order_list():
 
     params = {"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
 
-    data_json += "&".join([f"{key}={params[key]}" for key in sorted(params)])
+    data_json = "&".join([f"{key}={params[key]}" for key in sorted(params)])
 
     method_uri += "?" + data_json
 
