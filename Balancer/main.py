@@ -92,7 +92,6 @@ async def main():
         )
 
     async def event(msg: dict) -> None:
-        logger.info(msg)
         relationEvent = msg["data"]["relationEvent"]
         available = msg["data"]["available"]
         currency = msg["data"]["currency"]

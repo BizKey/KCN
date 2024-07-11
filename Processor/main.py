@@ -105,7 +105,8 @@ async def make_margin_limit_order(
         ) as response,
     ):
         res = await response.json()
-        logger.debug(res)
+        if res["code"] != "200000":
+            logger.warning(res)
 
 
 async def main():
@@ -153,6 +154,9 @@ async def main():
 
     async def balance(msg):
         data = loads(msg.data)
+        logger.info(
+            f"Change balance:{ledger.get(data['symbol'],{'available':'0'})['available']} \t-> {data['available']}"
+        )
         ledger.update(
             {
                 data["symbol"]: {
