@@ -4,6 +4,7 @@ from json import loads, dumps
 from decouple import config
 from base64 import b64encode
 from loguru import logger
+from kucoin.client import Trade
 from decimal import Decimal
 import hmac
 import hashlib
@@ -15,7 +16,7 @@ import aiohttp
 from datetime import datetime, timedelta
 
 key = config("KEY", cast=str)
-secret = config("SECRET", cast=str).encode("utf-8")
+secret = config("SECRET", cast=str)
 passphrase = config("PASSPHRASE", cast=str)
 base_stable = config("BASE_STABLE", cast=str)
 time_shift = config("TIME_SHIFT", cast=str)
@@ -25,6 +26,12 @@ base_keep = Decimal(config("BASE_KEEP", cast=int))
 ledger = {}
 
 base_uri = "https://api.kucoin.com"
+
+trade = Trade(
+    key=key,
+    secret=secret,
+    passphrase=passphrase,
+)
 
 
 def encrypted_msg(msg: str) -> str:
@@ -51,7 +58,7 @@ async def get_order_list():
 
     strl = []
     for key_ in sorted(params):
-        strl.append("{}={}".format(key_, params[key_]))
+        strl.append("{}={}".format(key_, params[key]))
     data_json += "&".join(strl)
     uri += "?" + data_json
     uri_path = uri
@@ -112,7 +119,9 @@ async def cancel_order_by_id(id_: str):
 
 async def main():
     while True:
-        orders = await get_order_list()
+        orders = trade.get_order_list(
+            {"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
+        )
 
         logger.info(orders)
 
