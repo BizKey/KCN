@@ -11,7 +11,7 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=OP
+      - CURRENCY=OP,SEI,BNB,CRV,GAL,KCS,DOT,EGLD,JTO,LDO,WIF,XRP,UNI,MANA,RLC,IMX,MATIC,THETA,SAND,SNX
   
   # composter_2:
   #   image: kizyanov/kcn_composter:latest
