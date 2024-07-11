@@ -50,6 +50,8 @@ async def get_order_list():
 
     data_json = uri + "?" + "&".join([f"{key}={params[key]}" for key in sorted(params)])
 
+    logger.info(data_json)
+
     async with (
         aiohttp.ClientSession() as session,
         session.get(
