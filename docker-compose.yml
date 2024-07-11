@@ -11,21 +11,21 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=OP,KCS,WIF,IMX,SUI,APT,ICP,BTC,APE,FRONT,ADA,PEPE,PEPE2,BTC,ETH,AVAX,NOT,TON
+      - CURRENCY=OP
   
-  composter_2:
-    image: kizyanov/kcn_composter:latest
-    container_name: kcn_composter_2
-    tty: true
-    restart: always
-    depends_on:
-     - balancer
-     - processor
-     - nats
-    links:
-     - nats:nats
-    environment:
-      - CURRENCY=DYM,BONK,LTC,BCH
+  # composter_2:
+  #   image: kizyanov/kcn_composter:latest
+  #   container_name: kcn_composter_2
+  #   tty: true
+  #   restart: always
+  #   depends_on:
+  #    - balancer
+  #    - processor
+  #    - nats
+  #   links:
+  #    - nats:nats
+  #   environment:
+  #     - CURRENCY=DYM,BONK,LTC,BCH
 
   balancer:
     image: kizyanov/kcn_balancer:latest
