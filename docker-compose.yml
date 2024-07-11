@@ -13,19 +13,62 @@ services:
     environment:
       - CURRENCY=OP,SEI,BNB,CRV,GAL,KCS,DOT,EGLD,JTO,LDO,WIF,XRP,UNI,MANA,RLC,IMX,MATIC,THETA,SAND,SNX
   
-  # composter_2:
-  #   image: kizyanov/kcn_composter:latest
-  #   container_name: kcn_composter_2
-  #   tty: true
-  #   restart: always
-  #   depends_on:
-  #    - balancer
-  #    - processor
-  #    - nats
-  #   links:
-  #    - nats:nats
-  #   environment:
-  #     - CURRENCY=DYM,BONK,LTC,BCH
+  composter_2:
+    image: kizyanov/kcn_composter:latest
+    container_name: kcn_composter_2
+    tty: true
+    restart: always
+    depends_on:
+     - balancer
+     - processor
+     - nats
+    links:
+     - nats:nats
+    environment:
+      - CURRENCY=SUI,TRX,ALICE,GLMR,ORN,APT,BCH,SUSHI,C98,MANTA,ICP,AAVE,CELO,BIGTIME,APE,BTC,LTC,NEO,YFI,FRONT
+
+  composter_3:
+    image: kizyanov/kcn_composter:latest
+    container_name: kcn_composter_3
+    tty: true
+    restart: always
+    depends_on:
+     - balancer
+     - processor
+     - nats
+    links:
+     - nats:nats
+    environment:
+      - CURRENCY=ETH,COMP,AXS,MKR,ZETA,ARB,AVAX,PYR,QNT,XTZ,SOL,AR,UMA,ILV,WOO,ORDI,RNDR,MASK,METIS,SUPER
+
+  composter_4:
+    image: kizyanov/kcn_composter:latest
+    container_name: kcn_composter_4
+    tty: true
+    restart: always
+    depends_on:
+     - balancer
+     - processor
+     - nats
+    links:
+     - nats:nats
+    environment:
+      - CURRENCY=INJ,NEAR,CAKE,LISTA,FLOW,LPT,FIL,ADA,DASH,YGG,ENS,RUNE,ONDO,KSM,XPR,ATOM,WLD,FTM,ETC,CHR
+
+  composter_5:
+    image: kizyanov/kcn_composter:latest
+    container_name: kcn_composter_5
+    tty: true
+    restart: always
+    depends_on:
+     - balancer
+     - processor
+     - nats
+    links:
+     - nats:nats
+    environment:
+      - CURRENCY=LINK,STX,LUNA,ZEC,PEPE2,TON,FET,DYM,MOVR,ELON,NOT,JUP,DYDX,FXS,BOME,TIA,DAO,KDA,ERN,PEPE
+
 
   balancer:
     image: kizyanov/kcn_balancer:latest
