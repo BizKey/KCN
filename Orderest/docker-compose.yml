@@ -1,0 +1,7 @@
+services:
+  orderest:
+    image: kizyanov/kcn_orderest:latest
+    build: .
+    container_name: kcn_orderest
+    tty: true
+    restart: always

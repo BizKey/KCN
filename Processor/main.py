@@ -1,103 +1,104 @@
 import asyncio
-import nats
+from nats.aio.client import Client
 import uvloop
 from json import loads, dumps
 from decouple import config
 from base64 import b64encode
 from loguru import logger
+from decimal import Decimal, ROUND_DOWN
 import hmac
 import hashlib
 import time
 from urllib.parse import urljoin
 from uuid import uuid1
-from decimal import Decimal, ROUND_DOWN
 import aiohttp
-from datetime import datetime
 
 
-passphrase = config("PASSPHRASE", cast=str)
 key = config("KEY", cast=str)
-secret = config("SECRET", cast=str)
+secret = config("SECRET", cast=str).encode("utf-8")
+passphrase = config("PASSPHRASE", cast=str)
+base_stable = config("BASE_STABLE", cast=str)
+time_shift = config("TIME_SHIFT", cast=str)
+base_stake = Decimal(config("BASE_STAKE", cast=int))
+base_keep = Decimal(config("BASE_KEEP", cast=int))
 
 ledger = {}
 
 base_uri = "https://api.kucoin.com"
 
 
+async def disconnected_cb(*args: list) -> None:
+    """CallBack на отключение от nats."""
+    logger.error(f"Got disconnected... {args}")
+
+
+async def reconnected_cb(*args: list) -> None:
+    """CallBack на переподключение к nats."""
+    logger.error(f"Got reconnected... {args}")
+
+
+async def error_cb(excep: Exception) -> None:
+    """CallBack на ошибку подключения к nats."""
+    logger.error(f"Error ... {excep}")
+
+
+async def closed_cb(*args: list) -> None:
+    """CallBack на закрытие подключения к nats."""
+    logger.error(f"Closed ... {args}")
+
+
 def encrypted_msg(msg: str) -> str:
     """Шифрование сообщения для биржи."""
     return b64encode(
-        hmac.new(secret.encode("utf-8"), msg.encode("utf-8"), hashlib.sha256).digest(),
+        hmac.new(
+            secret,
+            msg.encode("utf-8"),
+            hashlib.sha256,
+        ).digest(),
     ).decode()
 
 
-def get_payload(
+async def make_margin_limit_order(
     side: str,
+    price: str,
     symbol: str,
-    price: int,
     size: str,
-    timeInForce: str,
-    cancelAfter: int,
+    method: str = "POST",
+    method_uri: str = "/api/v1/margin/order",
 ):
-    return dumps(
+    """Make limit order by price."""
+
+    now_time = str(int(time.time()) * 1000)
+
+    data_json = dumps(
         {
             "clientOid": "".join([each for each in str(uuid1()).split("-")]),
             "side": side,
-            "type": "limit",
-            "price": str(price),
             "symbol": symbol,
+            "price": price,
             "size": size,
-            "timeInForce": timeInForce,
-            "cancelAfter": cancelAfter,
+            "type": "limit",
+            "timeInForce": "GTC",
             "autoBorrow": True,
             "autoRepay": True,
         },
     )
 
-
-async def make_limit_order(
-    side: str,
-    price: int,
-    symbol: str,
-    size: str,
-    timeInForce: str = "GTC",
-    cancelAfter: int = 0,
-    method: str = "POST",
-    method_uri: str = "/api/v1/orders",
-):
-    """Make limit order by price."""
-
-    now_time = int(time.time()) * 1000
-
-    data_json = get_payload(
-        side=side,
-        symbol=symbol,
-        price=price,
-        size=size,
-        timeInForce=timeInForce,
-        cancelAfter=cancelAfter,
-    )
-
-    logger.debug(data_json)
-
-    uri_path = method_uri + data_json
-    str_to_sign = str(now_time) + method + uri_path
-
-    headers = {
-        "KC-API-SIGN": encrypted_msg(str_to_sign),
-        "KC-API-TIMESTAMP": str(now_time),
-        "KC-API-PASSPHRASE": encrypted_msg(passphrase),
-        "KC-API-KEY": key,
-        "Content-Type": "application/json",
-        "KC-API-KEY-VERSION": "2",
-        "User-Agent": "kucoin-python-sdk/2",
-    }
-
     async with (
         aiohttp.ClientSession() as session,
         session.post(
             urljoin(base_uri, method_uri),
-            headers=headers,
+            headers={
+                "KC-API-SIGN": encrypted_msg(
+                    now_time + method + method_uri + data_json
+                ),
+                "KC-API-TIMESTAMP": now_time,
+                "KC-API-PASSPHRASE": encrypted_msg(passphrase),
+                "KC-API-KEY": key,
+                "Content-Type": "application/json",
+                "KC-API-KEY-VERSION": "2",
+                "User-Agent": "kucoin-python-sdk/2",
+            },
             data=data_json,
         ) as response,
     ):
@@ -106,42 +107,45 @@ async def make_limit_order(
 
 
 async def main():
-    nc = await nats.connect("nats")
+    nc = Client()
+
+    await nc.connect(
+        servers="nats",
+        max_reconnect_attempts=-1,
+        reconnected_cb=reconnected_cb,
+        disconnected_cb=disconnected_cb,
+        error_cb=error_cb,
+        closed_cb=closed_cb,
+    )
 
     js = nc.jetstream()
 
     await js.add_stream(name="kcn", subjects=["candle", "balance"])
 
     async def candle(msg):
-        symbol = loads(msg.data)
+        symbol, price_str = loads(msg.data).popitem()
+        price = Decimal(price_str)
+        new_balance = price * ledger[symbol]["available"]
 
-        logger.info(symbol)
-        # new_price = Decimal(price_str)
-        # l = ledger[symbol] * new_price
+        if new_balance > base_keep:
+            tokens_count = (new_balance - base_keep) / price
+            side = "sell"
 
-        # if balance > base_keep:
-        #     total = balance - base_keep
-        #     tokens_count = total / new_open_price
-        #     side = 'sell'
-        # elif balance < base_keep:
-        #     total = base_keep - balance
-        #     tokens_count = total / new_open_price
-        #     side = 'buy'
+        elif base_keep > new_balance:
+            tokens_count = (base_keep - new_balance) / price
+            side = "buy"
 
-        # await make_limit_order(
-        #                 side=side,
-        #                 price=str(new_open_price),
-        #                 symbol=symbol,
-        #                 size=str(
-        #                     tokens_count.quantize(
-        #                         order_book[data["symbol"]]["baseIncrement"],
-        #                         ROUND_DOWN,
-        #                     )
-        #                 ),  # округление
-        #                 timeInForce="GTT",
-        #                 cancelAfter=60 * 60,  # ровно час
-        #                 method_uri="/api/v1/margin/order",
-        #             )
+        await make_margin_limit_order(
+            side=side,
+            price=price_str,
+            symbol=symbol,
+            size=str(
+                tokens_count.quantize(
+                    ledger[symbol]["baseincrement"],
+                    ROUND_DOWN,
+                )
+            ),  # округление
+        )
 
         await msg.ack()
 
@@ -150,8 +154,8 @@ async def main():
         ledger.update(
             {
                 data["symbol"]: {
-                    "baseincrement": data["baseincrement"],
-                    "available": data["available"],
+                    "baseincrement": Decimal(data["baseincrement"]),
+                    "available": Decimal(data["available"]),
                 }
             }
         )

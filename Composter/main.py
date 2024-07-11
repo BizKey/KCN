@@ -1,5 +1,5 @@
 import asyncio
-import nats
+from nats.aio.client import Client
 import orjson
 import uvloop
 from kucoin.client import WsToken
@@ -7,18 +7,47 @@ from kucoin.ws_client import KucoinWsClient
 from loguru import logger
 from decouple import config, Csv
 
+
 currency = config("CURRENCY", cast=Csv(str))
 time_shift = config("TIME_SHIFT", cast=str, default="1hour")
 base_stable = config("BASE_STABLE", cast=str, default="USDT")
 
 
-history = {f"{k}-{base_stable}": "" for k in currency}
+async def disconnected_cb(*args: list) -> None:
+    """CallBack на отключение от nats."""
+    logger.error(f"Got disconnected... {args}")
+
+
+async def reconnected_cb(*args: list) -> None:
+    """CallBack на переподключение к nats."""
+    logger.error(f"Got reconnected... {args}")
+
+
+async def error_cb(excep: Exception) -> None:
+    """CallBack на ошибку подключения к nats."""
+    logger.error(f"Error ... {excep}")
+
+
+async def closed_cb(*args: list) -> None:
+    """CallBack на закрытие подключения к nats."""
+    logger.error(f"Closed ... {args}")
 
 
 async def main():
     tokens = ",".join([f"{sym}-{base_stable}_{time_shift}" for sym in currency])
+    history = {f"{k}-{base_stable}": "" for k in currency}
     logger.info(f"Tokens:{tokens}")
-    nc = await nats.connect("nats")
+
+    nc = Client()
+
+    await nc.connect(
+        servers="nats",
+        max_reconnect_attempts=-1,
+        reconnected_cb=reconnected_cb,
+        disconnected_cb=disconnected_cb,
+        error_cb=error_cb,
+        closed_cb=closed_cb,
+    )
 
     js = nc.jetstream()
 
