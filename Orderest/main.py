@@ -5,7 +5,6 @@ from decouple import config
 from base64 import b64encode
 from loguru import logger
 from decimal import Decimal
-from kucoin.client import Trade
 import hmac
 import hashlib
 import time
@@ -27,12 +26,6 @@ ledger = {}
 
 base_uri = "https://api.kucoin.com"
 
-trade = Trade(
-    key=key,
-    secret=secret,
-    passphrase=passphrase,
-)
-
 
 def encrypted_msg(msg: str) -> str:
     """Шифрование сообщения для биржи."""
@@ -53,15 +46,18 @@ async def get_order_list():
     method_uri = "/api/v1/orders"
     method = "GET"
 
+    params = {"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"}
+
+    data_json += "&".join([f"{key}={params[key]}" for key in sorted(params)])
+
+    method_uri += "?" + data_json
+
     async with (
         aiohttp.ClientSession() as session,
         session.get(
             urljoin(base_uri, method_uri),
-            params={"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"},
             headers={
-                "KC-API-SIGN": encrypted_msg(
-                    now_time + method + method_uri + data_json
-                ),
+                "KC-API-SIGN": encrypted_msg(now_time + method + method_uri),
                 "KC-API-TIMESTAMP": now_time,
                 "KC-API-PASSPHRASE": encrypted_msg(passphrase),
                 "KC-API-KEY": key,
@@ -110,12 +106,14 @@ async def main():
     while True:
         orders = await get_order_list()
 
-        for item in orders["items"]:
-            if datetime.fromtimestamp(int(time.time())) + timedelta(
-                hours=1
-            ) > datetime.fromtimestamp(item["createdAt"] / 1000):
-                # order was claim more 1 hour ago
-                await cancel_order_by_id(item["id"])
+        logger.info(orders)
+
+        # for item in orders["items"]:
+        #     if datetime.fromtimestamp(int(time.time())) + timedelta(
+        #         hours=1
+        #     ) > datetime.fromtimestamp(item["createdAt"] / 1000):
+        #         # order was claim more 1 hour ago
+        #         await cancel_order_by_id(item["id"])
 
         await asyncio.sleep(60)
 
