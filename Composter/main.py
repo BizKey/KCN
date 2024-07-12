@@ -8,9 +8,13 @@ from loguru import logger
 from decouple import config, Csv
 
 
-currency = config("CURRENCY", cast=Csv(str))
+# currency = config("CURRENCY", cast=Csv(str))
 time_shift = config("TIME_SHIFT", cast=str, default="1hour")
 base_stable = config("BASE_STABLE", cast=str, default="USDT")
+
+start_pos = config("START_POS", cast=int)
+count_pos = config("COUNT_POS", cast=int)
+currency = config("ALLCURRENCY", cast=Csv(str))[start_pos:count_pos+start_pos]
 
 
 async def disconnected_cb(*args: list) -> None:

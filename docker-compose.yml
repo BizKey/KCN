@@ -11,8 +11,9 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=OP,SEI,BNB,CRV,GAL,KCS,DOT,EGLD,JTO,LDO,WIF,XRP,UNI,MANA,RLC,IMX,MATIC,THETA,SAND,SNX
-  
+      - START_POS=0
+      - COUNT_POS=1
+
   composter_2:
     image: kizyanov/kcn_composter:latest
     container_name: kcn_composter_2
@@ -25,7 +26,8 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=SUI,TRX,ALICE,GLMR,ORN,APT,BCH,SUSHI,C98,MANTA,ICP,AAVE,CELO,BIGTIME,APE,BTC,LTC,NEO,YFI,FRONT
+      - START_POS=1
+      - COUNT_POS=1
 
   composter_3:
     image: kizyanov/kcn_composter:latest
@@ -39,7 +41,8 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=ETH,COMP,AXS,MKR,ZETA,ARB,AVAX,PYR,QNT,XTZ,SOL,AR,UMA,ILV,WOO,ORDI,RNDR,MASK,METIS,SUPER
+      - START_POS=2
+      - COUNT_POS=1
 
   composter_4:
     image: kizyanov/kcn_composter:latest
@@ -53,7 +56,8 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=INJ,NEAR,CAKE,LISTA,FLOW,LPT,FIL,ADA,DASH,YGG,ENS,RUNE,ONDO,KSM,XPR,ATOM,WLD,FTM,ETC,CHR
+      - START_POS=3
+      - COUNT_POS=1
 
   composter_5:
     image: kizyanov/kcn_composter:latest
@@ -67,7 +71,8 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=LINK,STX,LUNA,ZEC,PEPE2,TON,FET,DYM,MOVR,ELON,NOT,JUP,DYDX,FXS,BOME,TIA,DAO,KDA,ERN,PEPE
+      - START_POS=4
+      - COUNT_POS=1
 
   orderest:
     image: kizyanov/kcn_orderest:latest
