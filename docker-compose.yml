@@ -10,6 +10,8 @@ services:
      - nats
     links:
      - nats:nats
+    env_file:
+      - .env
     environment:
       - START_POS=0
       - COUNT_POS=1
@@ -25,6 +27,8 @@ services:
      - nats
     links:
      - nats:nats
+    env_file:
+      - .env
     environment:
       - START_POS=1
       - COUNT_POS=1
@@ -40,6 +44,8 @@ services:
      - nats
     links:
      - nats:nats
+    env_file:
+      - .env
     environment:
       - START_POS=2
       - COUNT_POS=1
@@ -55,6 +61,8 @@ services:
      - nats
     links:
      - nats:nats
+    env_file:
+      - .env
     environment:
       - START_POS=3
       - COUNT_POS=1
@@ -70,6 +78,8 @@ services:
      - nats
     links:
      - nats:nats
+    env_file:
+      - .env
     environment:
       - START_POS=4
       - COUNT_POS=1
