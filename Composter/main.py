@@ -14,7 +14,7 @@ base_stable = config("BASE_STABLE", cast=str, default="USDT")
 
 start_pos = config("START_POS", cast=int)
 count_pos = config("COUNT_POS", cast=int)
-currency = config("ALLCURRENCY", cast=Csv(str))[start_pos:count_pos+start_pos]
+currency = config("ALLCURRENCY", cast=Csv(str))[start_pos : count_pos + start_pos]
 
 
 async def disconnected_cb(*args: list) -> None:
