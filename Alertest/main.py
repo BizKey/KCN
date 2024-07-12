@@ -24,12 +24,8 @@ time_shift = config("TIME_SHIFT", cast=str)
 base_stake = Decimal(config("BASE_STAKE", cast=int))
 base_keep = Decimal(config("BASE_KEEP", cast=int))
 
-
 all_currency = config("ALLCURRENCY", cast=Csv(str))  # Tokens for trade in bot
 ignore_currency = config("IGNORECURRENCY", cast=Csv(str))  # Tokens for ignore
-accept_tokens = []  # All tokens from exchange
-new_tokens = []  # New tokens, don't find in all_currency
-del_tokens = []  # Tokens what didn't in exchange
 
 ledger = {}
 
@@ -45,6 +41,11 @@ market = Market(url="https://api.kucoin.com")
 
 
 def get_actual_token_stats():
+
+    accept_tokens = []  # All tokens from exchange
+    new_tokens = []  # New tokens, don't find in all_currency
+    del_tokens = []  # Tokens what didn't in exchange
+
     for token in market.get_symbol_list_v2():
         symbol = token["symbol"].replace("-USDT", "")
         if (
