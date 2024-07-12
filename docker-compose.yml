@@ -106,6 +106,12 @@ services:
     links:
      - nats:nats
 
+  alertest:
+    image: kizyanov/kcn_alertest:latest
+    container_name: kcn_alertest
+    tty: true
+    restart: always
+
   nats:
     image: nats:2.10.16-alpine3.19
     container_name: nats

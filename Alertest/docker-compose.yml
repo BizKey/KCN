@@ -1,0 +1,7 @@
+services:
+  alertest:
+    image: kizyanov/kcn_alertest:latest
+    build: .
+    container_name: kcn_alertest
+    tty: true
+    restart: always
