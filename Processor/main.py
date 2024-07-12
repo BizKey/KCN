@@ -106,7 +106,7 @@ async def make_margin_limit_order(
     ):
         res = await response.json()
         if res["code"] != "200000":
-            logger.warning(res)
+            logger.warning(f"{res}:{data_json}")
 
 
 async def main():
