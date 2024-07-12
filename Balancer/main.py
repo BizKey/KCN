@@ -5,11 +5,13 @@ import uvloop
 from kucoin.ws_client import KucoinWsClient
 from loguru import logger
 from kucoin.client import WsToken, User, Market
-from decouple import config
+from decouple import config, Csv
 
 passphrase = config("PASSPHRASE", cast=str)
 key = config("KEY", cast=str)
 secret = config("SECRET", cast=str)
+
+all_currency = config("ALLCURRENCY", cast=Csv(str))  # Tokens for trade in bot
 
 user = User(
     key=key,
@@ -33,6 +35,7 @@ client = WsToken(
 order_book = {
     f"{sh['currency']}": {"available": sh["available"]}
     for sh in user.get_account_list(account_type="margin")
+    if sh["currency"] in all_currency
 }
 
 
