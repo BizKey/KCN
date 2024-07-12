@@ -84,8 +84,6 @@ async def make_margin_limit_order(
         },
     )
 
-    logger.info(data_json)
-
     async with (
         aiohttp.ClientSession() as session,
         session.post(

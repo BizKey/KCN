@@ -76,7 +76,7 @@ async def main():
     while True:
         get_actual_token_stats()
 
-        await asyncio.sleep(180)
+        await asyncio.sleep(60*60*24)
 
 
 if __name__ == "__main__":
