@@ -127,7 +127,7 @@ async def main():
         )
 
         for item in orders["items"]:
-            if servertimestamp > item["createdAt"] + 3601000:
+            if servertimestamp > item["createdAt"] + 3500000:
                 # order was claim more 1 hour ago
                 logger.warning(f"Need cancel:{item}")
 
