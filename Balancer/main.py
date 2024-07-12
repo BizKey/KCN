@@ -17,13 +17,11 @@ user = User(
     passphrase=passphrase,
 )
 
-
 market = Market(
     key=key,
     secret=secret,
     passphrase=passphrase,
 )
-
 
 client = WsToken(
     key=key,
@@ -39,7 +37,10 @@ order_book = {
 
 
 for symbol_object in market.get_symbol_list_v2():
-    if symbol_object["baseCurrency"] in order_book:
+    if (
+        symbol_object["baseCurrency"] in order_book
+        and symbol_object["quoteCurrency"] == "USDT"
+    ):
         order_book[symbol_object["baseCurrency"]].update(
             {"baseincrement": symbol_object["baseIncrement"]}
         )
