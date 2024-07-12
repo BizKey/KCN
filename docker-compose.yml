@@ -14,7 +14,7 @@ services:
       - .env
     environment:
       - START_POS=0
-      - COUNT_POS=1
+      - COUNT_POS=20
 
   composter_2:
     image: kizyanov/kcn_composter:latest
@@ -30,8 +30,8 @@ services:
     env_file:
       - .env
     environment:
-      - START_POS=1
-      - COUNT_POS=1
+      - START_POS=20
+      - COUNT_POS=20
 
   composter_3:
     image: kizyanov/kcn_composter:latest
@@ -47,8 +47,8 @@ services:
     env_file:
       - .env
     environment:
-      - START_POS=2
-      - COUNT_POS=1
+      - START_POS=40
+      - COUNT_POS=20
 
   composter_4:
     image: kizyanov/kcn_composter:latest
@@ -64,8 +64,8 @@ services:
     env_file:
       - .env
     environment:
-      - START_POS=3
-      - COUNT_POS=1
+      - START_POS=60
+      - COUNT_POS=20
 
   composter_5:
     image: kizyanov/kcn_composter:latest
@@ -81,8 +81,8 @@ services:
     env_file:
       - .env
     environment:
-      - START_POS=4
-      - COUNT_POS=1
+      - START_POS=80
+      - COUNT_POS=20
 
   orderest:
     image: kizyanov/kcn_orderest:latest
