@@ -101,7 +101,8 @@ async def main():
         currency = msg["data"]["currency"]
 
         if (
-            relationEvent
+            currency != "USDT"
+            and relationEvent
             in [
                 "margin.hold",
                 "margin.setted",
