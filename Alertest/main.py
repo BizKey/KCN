@@ -52,7 +52,6 @@ def get_actual_token_stats():
             and token["quoteCurrency"] == "USDT"
             and symbol not in ignore_currency
         ):
-            logger.info(token)
             accept_tokens.append(symbol)
             if symbol not in all_currency:
                 new_tokens.append(symbol)
