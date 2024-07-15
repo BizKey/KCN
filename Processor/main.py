@@ -136,6 +136,9 @@ async def main():
             tokens_count = (base_keep - new_balance) / price
             side = "buy"
 
+        else:
+            return
+
         size = str(
             tokens_count.quantize(
                 ledger[symbol]["baseincrement"],
