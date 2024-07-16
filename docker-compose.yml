@@ -84,6 +84,23 @@ services:
       - START_POS=80
       - COUNT_POS=20
 
+  composter_6:
+    image: kizyanov/kcn_composter:latest
+    container_name: kcn_composter_6
+    tty: true
+    restart: always
+    depends_on:
+     - balancer
+     - processor
+     - nats
+    links:
+     - nats:nats
+    env_file:
+      - .env
+    environment:
+      - START_POS=100
+      - COUNT_POS=20
+
   orderest:
     image: kizyanov/kcn_orderest:latest
     container_name: kcn_orderest
