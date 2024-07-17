@@ -39,8 +39,28 @@ trade = Trade(
 
 market = Market(url="https://api.kucoin.com")
 
+telegram_url = f"https://api.telegram.org/bot{config('TELEGRAM_BOT_API_KEY', cast=str)}/sendMessage"
 
-def get_actual_token_stats():
+
+async def send_telegram_msg(text: str):
+    """Отправка сообщения в телеграмм."""
+    for chat_id in config("TELEGRAM_BOT_CHAT_ID", cast=Csv(str)):
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                telegram_url,
+                json={
+                    "chat_id": chat_id,
+                    "parse_mode": "HTML",
+                    "disable_notification": True,
+                    "text": text,
+                },
+            ),
+        ):
+            pass
+
+
+async def get_actual_token_stats():
 
     accept_tokens = []  # All tokens from exchange
     new_tokens = []  # New tokens, don't find in all_currency
@@ -61,22 +81,21 @@ def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
-    logger.warning(
-        f"""
+    msg = f"""
 All tokens:{len(accept_tokens)}
 Used tokens({len(all_currency)})
 Deleted({len(del_tokens)}):{",".join(del_tokens)}
 New({len(new_tokens)}):{",".join(new_tokens)}
 Ignore({len(ignore_currency)}):{",".join(ignore_currency)}
 """
-    )
+    logger.warning(msg)
+    await send_telegram_msg(msg)
 
 
 async def main():
     while True:
-        get_actual_token_stats()
-
-        await asyncio.sleep(60*60*24)
+        await get_actual_token_stats()
+        await asyncio.sleep(60 * 60)
 
 
 if __name__ == "__main__":
