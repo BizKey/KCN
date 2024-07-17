@@ -95,7 +95,7 @@ async def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
-    await send_telegram_msg(msg)
+    
 
     for i in margin.get_margin_borrowing_history(currency="USDT")["items"]:
         borrow_size += i["size"]
@@ -117,7 +117,7 @@ New({len(new_tokens)}):{",".join(new_tokens)}
 Ignore({len(ignore_currency)}):{",".join(ignore_currency)}
 """
     logger.warning(msg)
-
+    await send_telegram_msg(msg)
 
 async def main():
     while True:
