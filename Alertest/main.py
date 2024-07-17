@@ -8,7 +8,7 @@ from kucoin.client import Trade, Market
 from decimal import Decimal
 import hmac
 import hashlib
-from kucoin.client import WsToken, User, Market
+from kucoin.client import WsToken, User, Market, Margin
 import time
 from urllib.parse import urljoin
 from uuid import uuid1
@@ -32,6 +32,18 @@ ledger = {}
 base_uri = "https://api.kucoin.com"
 
 trade = Trade(
+    key=key,
+    secret=secret,
+    passphrase=passphrase,
+)
+
+margin = Margin(
+    key=key,
+    secret=secret,
+    passphrase=passphrase,
+)
+
+user = User(
     key=key,
     secret=secret,
     passphrase=passphrase,
@@ -90,6 +102,12 @@ Ignore({len(ignore_currency)}):{",".join(ignore_currency)}
 """
     logger.warning(msg)
     await send_telegram_msg(msg)
+
+    margin_data = margin.get_margin_borrowing_history(currency="USDT")
+    logger.warning(margin_data)
+
+    user_data = user.get_account_list(currency="USDT", account_type="margin")
+    logger.warning(user_data)
 
 
 async def main():
