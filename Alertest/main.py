@@ -135,8 +135,8 @@ async def get_actual_token_stats():
     logger.warning(f"{avail_size=}")
 
     msg = f"""
-    USDT:{avail_size}
-    Borrowing USDT:{borrow_size}
+USDT:{avail_size}
+Borrowing USDT:{borrow_size}
 All tokens:{len(accept_tokens)}
 Used tokens({len(all_currency)})
 Deleted({len(del_tokens)}):{",".join(del_tokens)}
