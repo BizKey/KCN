@@ -98,7 +98,7 @@ async def get_actual_token_stats():
     
 
     for i in margin.get_margin_borrowing_history(currency="USDT")["items"]:
-        borrow_size += i["size"]
+        borrow_size += float(i["size"])
 
     logger.warning(f"{borrow_size=}")
 
