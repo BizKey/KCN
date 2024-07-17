@@ -72,12 +72,42 @@ async def send_telegram_msg(text: str):
             pass
 
 
+def get_full_margin_usdt():
+    borrow_size = 0.0
+
+    first_page = margin.get_margin_borrowing_history(
+        currency="USDT",
+        **{
+            "isIsolated": False,
+            "pageSize": 500,
+        },
+    )
+    break_status = False
+    while True:
+        for i in first_page["items"]:
+            if i["status"] == "SUCCESS":
+                borrow_size += float(i["actualSize"])
+            elif i["status"] == "DONE":
+                break_status = True
+        if break_status:
+            break
+        first_page = margin.get_margin_borrowing_history(
+            currency="USDT",
+            **{
+                "isIsolated": False,
+                "pageSize": 500,
+                "currentPage": first_page["currentPage"] + 1,
+            },
+        )
+    return borrow_size
+
+
 async def get_actual_token_stats():
 
     accept_tokens = []  # All tokens from exchange
     new_tokens = []  # New tokens, don't find in all_currency
     del_tokens = []  # Tokens what didn't in exchange
-    borrow_size = 0.0
+
     avail_size = 0.0
 
     for token in market.get_symbol_list_v2():
@@ -95,10 +125,7 @@ async def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
-    
-
-    for i in margin.get_margin_borrowing_history(currency="USDT")["items"]:
-        borrow_size += float(i["size"])
+    borrow_size = get_full_margin_usdt()
 
     logger.warning(f"{borrow_size=}")
 
@@ -118,6 +145,7 @@ Ignore({len(ignore_currency)}):{",".join(ignore_currency)}
 """
     logger.warning(msg)
     await send_telegram_msg(msg)
+
 
 async def main():
     while True:
