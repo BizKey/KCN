@@ -96,19 +96,10 @@ async def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
-    margin_intere = margin.get_margin_account_Detail(quoteCurrency='USDT')
-    logger.warning(margin_intere)
-
-    # for i in margin_intere["items"]:
-    #     if i["currency"] == "USDT":
-    #         borrow_size = i["interestAmount"]
-
-    logger.warning(f"{borrow_size=}")
-
-    avail_size = user.get_account_list(currency="USDT", account_type="margin")[0][
-        "available"
-    ]
-    logger.warning(f"{avail_size=}")
+    for i in margin.get_margin_account_Detail(quoteCurrency="USDT")["accounts"]:
+        if i["currency"] == "USDT":
+            borrow_size = i["liability"]
+            avail_size = i["available"]
 
     msg = f"""
 USDT:{avail_size}
