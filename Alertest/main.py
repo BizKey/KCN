@@ -77,6 +77,8 @@ async def get_actual_token_stats():
     accept_tokens = []  # All tokens from exchange
     new_tokens = []  # New tokens, don't find in all_currency
     del_tokens = []  # Tokens what didn't in exchange
+    borrow_size = 0.0
+    avail_size = 0.0
 
     for token in market.get_symbol_list_v2():
         symbol = token["symbol"].replace("-USDT", "")
@@ -93,7 +95,21 @@ async def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
+    await send_telegram_msg(msg)
+
+    for i in margin.get_margin_borrowing_history(currency="USDT")["items"]:
+        borrow_size += i["size"]
+
+    logger.warning(f"{borrow_size=}")
+
+    avail_size = user.get_account_list(currency="USDT", account_type="margin")[0][
+        "available"
+    ]
+    logger.warning(f"{avail_size=}")
+
     msg = f"""
+    USDT:{avail_size}
+    Borrowing USDT:{borrow_size}
 All tokens:{len(accept_tokens)}
 Used tokens({len(all_currency)})
 Deleted({len(del_tokens)}):{",".join(del_tokens)}
@@ -101,13 +117,6 @@ New({len(new_tokens)}):{",".join(new_tokens)}
 Ignore({len(ignore_currency)}):{",".join(ignore_currency)}
 """
     logger.warning(msg)
-    await send_telegram_msg(msg)
-
-    margin_data = margin.get_margin_borrowing_history(currency="USDT")
-    logger.warning(margin_data)
-
-    user_data = user.get_account_list(currency="USDT", account_type="margin")
-    logger.warning(user_data)
 
 
 async def main():
