@@ -78,8 +78,8 @@ async def get_actual_token_stats():
     new_tokens = []  # New tokens, don't find in all_currency
     del_tokens = []  # Tokens what didn't in exchange
 
-    avail_size = '0.0'
-    borrow_size= '0.0'
+    avail_size = "0.0"
+    borrow_size = "0.0"
 
     for token in market.get_symbol_list_v2():
         symbol = token["symbol"].replace("-USDT", "")
@@ -96,12 +96,7 @@ async def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
-    margin_intere = margin.get_cross_or_isolated_margin_interest_records(
-        **{
-            "isIsolated": False,
-            "symbol": "USDT",
-        }
-    )
+    margin_intere = margin.get_cross_or_isolated_margin_interest_records()
     logger.warning(margin_intere)
 
     for i in margin_intere["items"]:
