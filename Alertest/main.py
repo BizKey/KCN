@@ -96,7 +96,7 @@ async def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
-    margin_intere = margin.get_etf_info(currency='USDT')
+    margin_intere = margin.get_margin_account_Detail(currency='USDT')
     logger.warning(margin_intere)
 
     # for i in margin_intere["items"]:
