@@ -72,43 +72,14 @@ async def send_telegram_msg(text: str):
             pass
 
 
-def get_full_margin_usdt():
-    borrow_size = 0.0
-
-    first_page = margin.get_margin_borrowing_history(
-        currency="USDT",
-        **{
-            "isIsolated": False,
-            "pageSize": 500,
-        },
-    )
-    break_status = False
-    while True:
-        for i in first_page["items"]:
-            if i["status"] == "SUCCESS":
-                borrow_size += float(i["actualSize"])
-            elif i["status"] == "DONE":
-                break_status = True
-        if break_status:
-            break
-        first_page = margin.get_margin_borrowing_history(
-            currency="USDT",
-            **{
-                "isIsolated": False,
-                "pageSize": 500,
-                "currentPage": first_page["currentPage"] + 1,
-            },
-        )
-    return borrow_size
-
-
 async def get_actual_token_stats():
 
     accept_tokens = []  # All tokens from exchange
     new_tokens = []  # New tokens, don't find in all_currency
     del_tokens = []  # Tokens what didn't in exchange
 
-    avail_size = 0.0
+    avail_size = '0.0'
+    borrow_size= '0.0'
 
     for token in market.get_symbol_list_v2():
         symbol = token["symbol"].replace("-USDT", "")
@@ -125,7 +96,17 @@ async def get_actual_token_stats():
         if used not in accept_tokens:
             del_tokens.append(used)
 
-    borrow_size = get_full_margin_usdt()
+    margin_intere = margin.get_cross_or_isolated_margin_interest_records(
+        **{
+            "isIsolated": False,
+            "symbol": "USDT",
+        }
+    )
+    logger.warning(margin_intere)
+
+    for i in margin_intere["items"]:
+        if i["currency"] == "USDT":
+            borrow_size = i["interestAmount"]
 
     logger.warning(f"{borrow_size=}")
 
