@@ -102,13 +102,15 @@ async def get_actual_token_stats():
             avail_size = i["available"]
 
     msg = f"""
+KuCoin
+
 USDT:{avail_size}
-Borrowing USDT:{borrow_size}
-All tokens:{len(accept_tokens)}
-Used tokens({len(all_currency)})
-Deleted({len(del_tokens)}):{",".join(del_tokens)}
-New({len(new_tokens)}):{",".join(new_tokens)}
-Ignore({len(ignore_currency)}):{",".join(ignore_currency)}
+BORROWING USDT:{borrow_size}
+ALL TOKENS:{len(accept_tokens)}
+USED TOKENS({len(all_currency)})
+DELETED({len(del_tokens)}):{",".join(del_tokens)}
+NEW({len(new_tokens)}):{",".join(new_tokens)}
+IGNORE({len(ignore_currency)}):{",".join(ignore_currency)}
 """
     logger.warning(msg)
     await send_telegram_msg(msg)
