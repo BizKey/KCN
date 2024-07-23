@@ -76,10 +76,9 @@ async def get_actual_token_stats():
 
     accept_tokens = []  # All tokens from exchange
     new_tokens = []  # New tokens, don't find in all_currency
-    del_tokens = []  # Tokens what didn't in exchange
 
-    avail_size = "0.0"
-    borrow_size = "0.0"
+    avail_size = 0.0
+    borrow_size = 0.0
 
     for token in market.get_symbol_list_v2():
         symbol = token["symbol"].replace("-USDT", "")
@@ -91,26 +90,24 @@ async def get_actual_token_stats():
             accept_tokens.append(symbol)
             if symbol not in all_currency:
                 new_tokens.append(symbol)
-
-    for used in all_currency:
-        if used not in accept_tokens:
-            del_tokens.append(used)
+    
+    del_tokens = [used for used in all_currency if used not in accept_tokens]
 
     for i in margin.get_margin_account_Detail(quoteCurrency="USDT")["accounts"]:
         if i["currency"] == "USDT":
-            borrow_size = i["liability"]
-            avail_size = i["available"]
+            borrow_size = float(i["liability"])
+            avail_size = float(i["available"])
 
     msg = f"""
-KuCoin
+<b>KuCoin</b>
 
-USDT:{avail_size}
-BORROWING USDT:{borrow_size}
-ALL TOKENS:{len(accept_tokens)}
-USED TOKENS({len(all_currency)})
-DELETED({len(del_tokens)}):{",".join(del_tokens)}
-NEW({len(new_tokens)}):{",".join(new_tokens)}
-IGNORE({len(ignore_currency)}):{",".join(ignore_currency)}
+<i>USDT</i>:{avail_size:.2f}
+<i>BORROWING USDT</i>:{borrow_size:.2f}
+<i>ALL TOKENS</i>:{len(accept_tokens)}
+<i>USED TOKENS</i>({len(all_currency)})
+<i>DELETED</i>({len(del_tokens)}):{",".join(del_tokens)}
+<i>NEW</i>({len(new_tokens)}):{",".join(new_tokens)}
+<i>IGNORE</i>({len(ignore_currency)}):{",".join(ignore_currency)}
 """
     logger.warning(msg)
     await send_telegram_msg(msg)
