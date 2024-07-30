@@ -90,7 +90,7 @@ async def get_actual_token_stats():
             accept_tokens.append(symbol)
             if symbol not in all_currency:
                 new_tokens.append(symbol)
-    
+
     del_tokens = [used for used in all_currency if used not in accept_tokens]
 
     for i in margin.get_margin_account_Detail(quoteCurrency="USDT")["accounts"]:
@@ -101,8 +101,9 @@ async def get_actual_token_stats():
     msg = f"""
 <b>KuCoin</b>
 
+<i>KEEP</i>:{base_keep}
 <i>USDT</i>:{avail_size:.2f}
-<i>BORROWING USDT</i>:{borrow_size:.2f}
+<i>BORROWING USDT</i>:{borrow_size:.2f} ({borrow_size*100/len(all_currency)*base_keep:.2f}%)
 <i>ALL TOKENS</i>:{len(accept_tokens)}
 <i>USED TOKENS</i>({len(all_currency)})
 <i>DELETED</i>({len(del_tokens)}):{",".join(del_tokens)}
