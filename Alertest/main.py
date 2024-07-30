@@ -103,7 +103,7 @@ async def get_actual_token_stats():
 
 <i>KEEP</i>:{base_keep}
 <i>USDT</i>:{avail_size:.2f}
-<i>BORROWING USDT</i>:{borrow_size:.2f} ({borrow_size*100/len(all_currency)*float(base_keep):.2f}%)
+<i>BORROWING USDT</i>:{borrow_size:.2f} ({borrow_size*100/(len(all_currency)*float(base_keep)):.2f}%)
 <i>ALL TOKENS</i>:{len(accept_tokens)}
 <i>USED TOKENS</i>({len(all_currency)})
 <i>DELETED</i>({len(del_tokens)}):{",".join(del_tokens)}
