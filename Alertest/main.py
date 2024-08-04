@@ -117,7 +117,7 @@ async def get_actual_token_stats():
 async def main():
     while True:
         await asyncio.sleep(1)
-        if datetime.strftime(datetime.now(), "%M:%S") == '25:00':
+        if datetime.strftime(datetime.now(), "%M:%S") == '10:00':
             await get_actual_token_stats()
 
 
