@@ -1,27 +1,19 @@
 import asyncio
 import uvloop
-from json import loads, dumps
 from decouple import config
 from base64 import b64encode
 from loguru import logger
 from kucoin.client import Trade, Market
-from decimal import Decimal
 import hmac
 import hashlib
 import time
 from urllib.parse import urljoin
-from uuid import uuid1
 import aiohttp
 
-from datetime import datetime, timedelta
 
 key = config("KEY", cast=str)
 secret = config("SECRET", cast=str)
 passphrase = config("PASSPHRASE", cast=str)
-base_stable = config("BASE_STABLE", cast=str)
-time_shift = config("TIME_SHIFT", cast=str)
-base_stake = Decimal(config("BASE_STAKE", cast=int))
-base_keep = Decimal(config("BASE_KEEP", cast=int))
 
 ledger = {}
 
@@ -89,36 +81,6 @@ async def get_order_list():
         return res
 
 
-async def cancel_order_by_id(id_: str):
-    """Cancel order by ID."""
-    method_uri = f"/api/v1/orders/{id_}"
-
-    method = "DELETE"
-
-    now_time = str(int(time.time()) * 1000)
-
-    async with (
-        aiohttp.ClientSession() as session,
-        session.delete(
-            urljoin(base_uri, method_uri),
-            headers={
-                "KC-API-SIGN": encrypted_msg(
-                    now_time + method + method_uri + data_json
-                ),
-                "KC-API-TIMESTAMP": now_time,
-                "KC-API-PASSPHRASE": encrypted_msg(passphrase),
-                "KC-API-KEY": key,
-                "Content-Type": "application/json",
-                "KC-API-KEY-VERSION": "2",
-                "User-Agent": "kucoin-python-sdk/2",
-            },
-            data=data_json,
-        ) as response,
-    ):
-        res = await response.json()
-        logger.info(res)
-
-
 async def main():
     while True:
         servertimestamp = market.get_server_timestamp()
@@ -137,4 +99,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    uvloop.run(main())
+    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+        runner.run(main())

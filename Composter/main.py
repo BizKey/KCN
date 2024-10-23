@@ -7,8 +7,6 @@ from kucoin.ws_client import KucoinWsClient
 from loguru import logger
 from decouple import config, Csv
 
-
-# currency = config("CURRENCY", cast=Csv(str))
 time_shift = config("TIME_SHIFT", cast=str, default="1hour")
 base_stable = config("BASE_STABLE", cast=str, default="USDT")
 
@@ -71,4 +69,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    uvloop.run(main())
+    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+        runner.run(main())

@@ -1,27 +1,17 @@
 import asyncio
 import uvloop
-from json import loads, dumps
 from decouple import config, Csv
-from base64 import b64encode
 from loguru import logger
 from kucoin.client import Trade, Market
 from decimal import Decimal
-import hmac
-import hashlib
-from kucoin.client import WsToken, User, Market, Margin
-import time
-from urllib.parse import urljoin
-from uuid import uuid1
+from kucoin.client import User, Margin
 import aiohttp
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 key = config("KEY", cast=str)
 secret = config("SECRET", cast=str)
 passphrase = config("PASSPHRASE", cast=str)
-base_stable = config("BASE_STABLE", cast=str)
-time_shift = config("TIME_SHIFT", cast=str)
-base_stake = Decimal(config("BASE_STAKE", cast=int))
 base_keep = Decimal(config("BASE_KEEP", cast=int))
 
 all_currency = config("ALLCURRENCY", cast=Csv(str))  # Tokens for trade in bot
@@ -117,9 +107,10 @@ async def get_actual_token_stats():
 async def main():
     while True:
         await asyncio.sleep(1)
-        if datetime.strftime(datetime.now(), "%M:%S") == '10:00':
+        if datetime.strftime(datetime.now(), "%M:%S") == "10:00":
             await get_actual_token_stats()
 
 
 if __name__ == "__main__":
-    uvloop.run(main())
+    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+        runner.run(main())

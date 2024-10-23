@@ -7,10 +7,9 @@ from loguru import logger
 from kucoin.client import WsToken, User, Market
 from decouple import config, Csv
 
-passphrase = config("PASSPHRASE", cast=str)
 key = config("KEY", cast=str)
 secret = config("SECRET", cast=str)
-
+passphrase = config("PASSPHRASE", cast=str)
 all_currency = config("ALLCURRENCY", cast=Csv(str))  # Tokens for trade in bot
 
 user = User(
@@ -128,4 +127,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    uvloop.run(main())
+    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+        runner.run(main())

@@ -17,9 +17,6 @@ import aiohttp
 key = config("KEY", cast=str)
 secret = config("SECRET", cast=str).encode("utf-8")
 passphrase = config("PASSPHRASE", cast=str)
-base_stable = config("BASE_STABLE", cast=str)
-time_shift = config("TIME_SHIFT", cast=str)
-base_stake = Decimal(config("BASE_STAKE", cast=int))
 base_keep = Decimal(config("BASE_KEEP", cast=int))
 
 ledger = {}
@@ -178,4 +175,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    uvloop.run(main())
+    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
+        runner.run(main())
