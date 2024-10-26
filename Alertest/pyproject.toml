@@ -10,13 +10,18 @@ package-mode = false
 python = "^3.12"
 aiohttp = { extras = ["speedups"], version = "3.10.10" }
 loguru = "0.7.2"
-nats-py = "2.9.0"
 uvloop = "0.21.0"
 orjson = "3.10.10"
 python-decouple = "3.8"
-kucoin-python = "1.0.25"
 setuptools = "75.2.0"
+pendulum = "3.0.0"
 
+[tool.ruff]
+lint.select = ["ALL"]
+lint.ignore = []
+lint.fixable = ["I", "COM"]
+lint.mccabe.max-complexity = 2
+lint.pydocstyle.convention = "google"
 
 [build-system]
 requires = ["poetry-core"]

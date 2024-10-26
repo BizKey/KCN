@@ -1,51 +1,34 @@
+"""Processor."""
+
 import asyncio
-from nats.aio.client import Client
-import uvloop
-from json import loads, dumps
-from decouple import config
-from base64 import b64encode
-from loguru import logger
-from decimal import Decimal, ROUND_DOWN
-import hmac
 import hashlib
+import hmac
 import time
+from base64 import b64encode
+from decimal import ROUND_DOWN, Decimal
 from urllib.parse import urljoin
 from uuid import uuid1
-import aiohttp
 
+import aiohttp
+import orjson
+import uvloop
+from decouple import config
+from loguru import logger
+from Processor.nats import get_js_context
+
+from nats.aio.client import Msg
 
 key = config("KEY", cast=str)
 secret = config("SECRET", cast=str).encode("utf-8")
 passphrase = config("PASSPHRASE", cast=str)
 base_keep = Decimal(config("BASE_KEEP", cast=int))
 
-ledger = {}
 
 base_uri = "https://api.kucoin.com"
 
 
-async def disconnected_cb(*args: list) -> None:
-    """CallBack на отключение от nats."""
-    logger.error(f"Got disconnected... {args}")
-
-
-async def reconnected_cb(*args: list) -> None:
-    """CallBack на переподключение к nats."""
-    logger.error(f"Got reconnected... {args}")
-
-
-async def error_cb(excep: Exception) -> None:
-    """CallBack на ошибку подключения к nats."""
-    logger.error(f"Error ... {excep}")
-
-
-async def closed_cb(*args: list) -> None:
-    """CallBack на закрытие подключения к nats."""
-    logger.error(f"Closed ... {args}")
-
-
 def encrypted_msg(msg: str) -> str:
-    """Шифрование сообщения для биржи."""
+    """Encrypt msg for excenge."""
     return b64encode(
         hmac.new(
             secret,
@@ -60,16 +43,16 @@ async def make_margin_limit_order(
     price: str,
     symbol: str,
     size: str,
-    method: str = "POST",
-    method_uri: str = "/api/v1/margin/order",
-):
+) -> None:
     """Make limit order by price."""
+    method = "POST"
+    method_uri = "/api/v1/margin/order"
 
     now_time = str(int(time.time()) * 1000)
 
-    data_json = dumps(
+    data_json = orjson.dumps(
         {
-            "clientOid": "".join([each for each in str(uuid1()).split("-")]),
+            "clientOid": str(uuid1()).replace("-", ""),
             "side": side,
             "symbol": symbol,
             "price": price,
@@ -79,7 +62,7 @@ async def make_margin_limit_order(
             "autoBorrow": True,
             "autoRepay": True,
         },
-    )
+    ).decode()
 
     async with (
         aiohttp.ClientSession() as session,
@@ -87,7 +70,7 @@ async def make_margin_limit_order(
             urljoin(base_uri, method_uri),
             headers={
                 "KC-API-SIGN": encrypted_msg(
-                    now_time + method + method_uri + data_json
+                    now_time + method + method_uri + data_json,
                 ),
                 "KC-API-TIMESTAMP": now_time,
                 "KC-API-PASSPHRASE": encrypted_msg(passphrase),
@@ -100,73 +83,91 @@ async def make_margin_limit_order(
         ) as response,
     ):
         res = await response.json()
-        if res["code"] != "200000":
-            logger.warning(f"{res}:{data_json}")
+        match res["code"]:
+            case "200000":
+                logger.success(f"{res}:{data_json}")
+            case _:
+                logger.warning(f"{res}:{data_json}")
 
 
-async def main():
-    nc = Client()
+def get_side_and_size(ledger_data: dict, price: Decimal) -> dict:
+    """Get side of trade and size of tokens."""
+    new_balance = price * ledger_data["available"]
 
-    await nc.connect(
-        servers="nats",
-        max_reconnect_attempts=-1,
-        reconnected_cb=reconnected_cb,
-        disconnected_cb=disconnected_cb,
-        error_cb=error_cb,
-        closed_cb=closed_cb,
+    tokens_count = Decimal("0")
+
+    if new_balance >= base_keep:
+        tokens_count = (new_balance - base_keep) / price
+        side = "sell"
+
+    else:
+        tokens_count = (base_keep - new_balance) / price
+        side = "buy"
+
+    size = tokens_count.quantize(
+        ledger_data["baseincrement"],
+        ROUND_DOWN,
+    )  # around to baseincrement
+
+    return {"side": side, "size": str(size)}
+
+
+ledger = {}
+
+
+async def candle(msg: Msg) -> None:
+    """Collect data of open price each candle by interval."""
+    symbol, price_str = orjson.loads(msg.data).popitem()
+
+    # get side and size
+    side_size_data = get_side_and_size(ledger[symbol], Decimal(price_str))
+
+    if float(side_size_data["size"]) != 0.0:
+        # make limit order
+        await make_margin_limit_order(
+            side=side_size_data["side"],
+            price=price_str,
+            symbol=symbol,
+            size=side_size_data["size"],
+        )
+
+    # ack msg
+    await msg.ack()
+
+
+async def balance(msg: Msg) -> None:
+    """Collect balance of each tokens."""
+    data = orjson.loads(msg.data)
+
+    symbol = data["symbol"]
+    available = data["available"]
+    baseincrement = data["baseincrement"]
+
+    if symbol in ledger:
+        available_in_ledger = ledger.get(symbol)["available"]
+    else:
+        available_in_ledger = ledger.get(symbol, {"available": "0"})["available"]
+
+    logger.info(
+        f"Change balance:{symbol}\t{available_in_ledger} \t-> {available}",
     )
 
-    js = nc.jetstream()
+    ledger.update(
+        {
+            symbol: {
+                "baseincrement": Decimal(baseincrement),
+                "available": Decimal(available),
+            },
+        },
+    )
+    await msg.ack()
+
+
+async def main() -> None:
+    """Main func in microservice."""
+    js = await get_js_context()
 
     await js.add_stream(name="kcn", subjects=["candle", "balance"])
-
-    async def candle(msg):
-        symbol, price_str = loads(msg.data).popitem()
-        price = Decimal(price_str)
-        new_balance = price * ledger[symbol]["available"]
-
-        if new_balance > base_keep:
-            tokens_count = (new_balance - base_keep) / price
-            side = "sell"
-
-        elif base_keep > new_balance:
-            tokens_count = (base_keep - new_balance) / price
-            side = "buy"
-
-        else:
-            return
-
-        size = str(
-            tokens_count.quantize(
-                ledger[symbol]["baseincrement"],
-                ROUND_DOWN,
-            )
-        )  # around
-
-        if float(size) != 0.0:
-            await make_margin_limit_order(
-                side=side,
-                price=price_str,
-                symbol=symbol,
-                size=size,
-            )
-
-        await msg.ack()
-
-    async def balance(msg):
-        data = loads(msg.data)
-        logger.info(
-            f"Change balance:{data['symbol']}\t{ledger.get(data['symbol'],{'available':'0'})['available']} \t-> {data['available']}"
-        )
-        ledger.update(
-            {
-                data["symbol"]: {
-                    "baseincrement": Decimal(data["baseincrement"]),
-                    "available": Decimal(data["available"]),
-                }
-            }
-        )
-        await msg.ack()
 
     await js.subscribe("candle", "candle", cb=candle)
     await js.subscribe("balance", "balance", cb=balance)

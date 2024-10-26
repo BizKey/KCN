@@ -1,71 +1,114 @@
+"""Composter."""
+
 import asyncio
-from nats.aio.client import Client
+import time
+from collections.abc import Generator
+from uuid import uuid4
+
+import aiohttp
 import orjson
 import uvloop
-from kucoin.client import WsToken
-from kucoin.ws_client import KucoinWsClient
+from Composter.nats import get_js_context
+from decouple import Csv, config
 from loguru import logger
-from decouple import config, Csv
+from websockets.asyncio.client import ClientConnection, connect
+
+from nats.js import JetStreamContext
 
 time_shift = config("TIME_SHIFT", cast=str, default="1hour")
 base_stable = config("BASE_STABLE", cast=str, default="USDT")
 
-start_pos = config("START_POS", cast=int)
-count_pos = config("COUNT_POS", cast=int)
-currency = config("ALLCURRENCY", cast=Csv(str))[start_pos : count_pos + start_pos]
+currency = config("ALLCURRENCY", cast=Csv(str))
+history = {f"{key}-{base_stable}": "" for key in currency}
 
 
-async def disconnected_cb(*args: list) -> None:
-    """CallBack на отключение от nats."""
-    logger.error(f"Got disconnected... {args}")
+def divide_chunks(length: list, number: int) -> Generator:
+    """Функция разбиения словаря на подсловари по number значений."""
+    for itr in range(0, len(length), number):
+        yield length[itr : itr + number]
 
 
-async def reconnected_cb(*args: list) -> None:
-    """CallBack на переподключение к nats."""
-    logger.error(f"Got reconnected... {args}")
+async def get_public_token() -> dict:
+    """Get auth data for create websocket connection."""
+    async with (
+        aiohttp.ClientSession() as session,
+        session.post(
+            "https://api.kucoin.com/api/v1/bullet-public",
+        ) as response,
+    ):
+        res = await response.read()
+        return orjson.loads(res)["data"]
 
 
-async def error_cb(excep: Exception) -> None:
-    """CallBack на ошибку подключения к nats."""
-    logger.error(f"Error ... {excep}")
+async def event(data: dict, js: JetStreamContext) -> None:
+    """Processing event klines."""
+    symbol = data["symbol"]
+    open_price = data["candles"][1]
+
+    if history[symbol] != open_price:
+        logger.info(f"Sent -> \t{symbol}:\t{open_price}")
+        await js.publish("candle", orjson.dumps({symbol: open_price}))
+        history[symbol] = open_price
 
 
-async def closed_cb(*args: list) -> None:
-    """CallBack на закрытие подключения к nats."""
-    logger.error(f"Closed ... {args}")
+async def get_url_websocket() -> str:
+    """SetUp and get url for websocket."""
+    public_token = await get_public_token()
+
+    uri = public_token["instanceServers"][0]["endpoint"]
+    token = public_token["token"]
+
+    return f"{uri}?token={token}&connectId={str(uuid4()).replace('-', '')}"
 
 
-async def main():
-    tokens = ",".join([f"{sym}-{base_stable}_{time_shift}" for sym in currency])
-    history = {f"{k}-{base_stable}": "" for k in currency}
-    logger.info(f"Tokens:{tokens}")
+async def set_up_subscribe(websocket: ClientConnection) -> None:
+    """SetUp all subscribe."""
+    await websocket.recv()
 
-    nc = Client()
+    tunnelid = "all_klines"
 
-    await nc.connect(
-        servers="nats",
-        max_reconnect_attempts=-1,
-        reconnected_cb=reconnected_cb,
-        disconnected_cb=disconnected_cb,
-        error_cb=error_cb,
-        closed_cb=closed_cb,
+    await websocket.send(
+        orjson.dumps(
+            {
+                "id": str(int(time.time() * 1000)),
+                "type": "openTunnel",
+                "newTunnelId": tunnelid,
+            },
+        ).decode(),
     )
 
-    js = nc.jetstream()
+    for tokens in divide_chunks(currency, 20):
+        candles = ",".join([f"{sym}-{base_stable}_{time_shift}" for sym in tokens])
 
-    async def event(msg: dict) -> None:
-        symbol = msg["data"]["symbol"]
-        price = msg["data"]["candles"][1]
-        if history[symbol] != price:
-            logger.info(f"Sent -> \t{symbol}:\t{price}")
-            await js.publish("candle", orjson.dumps({symbol: price}))
-            history[symbol] = price
+        await websocket.send(
+            orjson.dumps(
+                {
+                    "id": str(int(time.time() * 1000)),
+                    "type": "subscribe",
+                    "topic": f"/market/candles:{candles}",
+                    "privateChannel": False,
+                    "tunnelId": tunnelid,
+                },
+            ).decode(),
+        )
 
-    ws_public = await KucoinWsClient.create(None, WsToken(), event, private=False)
 
-    await ws_public.subscribe(f"/market/candles:{tokens}")
+async def main() -> None:
+    """Main func in microservice."""
+    js = await get_js_context()
+    await js.add_stream(name="kcn", subjects=["candle", "balance"])
+    url = await get_url_websocket()
 
-    await asyncio.sleep(60 * 60 * 24 * 365)
+    async with connect(
+        url,
+        max_queue=1024,
+    ) as websocket:
+        await set_up_subscribe(websocket)
+
+        while True:
+            recv = await websocket.recv()
+            data = orjson.loads(recv)["data"]
+            await event(data, js)
 
 
 if __name__ == "__main__":

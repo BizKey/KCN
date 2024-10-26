@@ -17,6 +17,12 @@ python-decouple = "3.8"
 kucoin-python = "1.0.25"
 setuptools = "75.2.0"
 
+[tool.ruff]
+lint.select = ["ALL"]
+lint.ignore = []
+lint.fixable = ["I", "COM"]
+lint.mccabe.max-complexity = 2
+lint.pydocstyle.convention = "google"
 
 [build-system]
 requires = ["poetry-core"]

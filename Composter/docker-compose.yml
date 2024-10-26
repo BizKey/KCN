@@ -1,5 +1,5 @@
 services:
-  composter:
+  kcn_composter:
     image: kizyanov/kcn_composter:latest
     build: .
     container_name: kcn_composter
@@ -8,10 +8,10 @@ services:
     links:
      - nats:nats
     environment:
-      - CURRENCY=OP,KCS,WIF,IMX,SUI,APT,ICP,BTC,APE,FRONT
+      - ALLCURRENCY=BTC,ETH,BNB,SOL,XRP,TON,ADA,AVAX,TRX,SHIB,DOT,LINK,BCH,NEAR,LTC,DOGS,PEPE,UNI,ICP,ETC,FET,APT,XLM,STX,WIF,ARB,FIL,MKR,ATOM,INJ,IMX,OP,SUI,AR,BONK,FLOKI,LDO,RUNE,THETA,NOT,ONDO,TIA,AAVE,FTM,JUP,SEI,EGLD,KCS,FLOW,ENS,AXS,STRK,QNT,DYDX,NEO,ORDI,XTZ,SAND,WLD,MANA,BOME,SNX,ZRO,LPT,ZEC,APE,CAKE,COMP,WOO,MANTA,DYM,LUNA,CRV,KSM,SUPER,ZIL,JTO,ILV,DASH,CELO,METIS,MASK,CHR,ZETA,UMA,FXS,YFI,SUSHI,GLMR,YGG,KDA,RLC,C98,LISTA,SLP,MOVR,BIGTIME,ELON,PYR,ALICE,BLUR,DAO,ERN,XPR,PEPE2,MEME,CHZ,DOGE,JASMY,PYTH,WAVES,FLUX,VRA,HBAR,LUNC,AIOZ
 
   nats:
-    image: nats:2.10.16-alpine3.19
+    image: nats:2.10.22-alpine3.20
     container_name: nats
     restart: always
     hostname: nats
