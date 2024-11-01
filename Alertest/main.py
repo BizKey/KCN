@@ -37,9 +37,9 @@ async def get_available_funds(
     """Get available funds in excechge."""
     logger.info("Run get_available_funds")
 
-    margin_account = await get_margin_account(access)["accounts"]
+    margin_account = await get_margin_account(access)
 
-    for i in [i for i in margin_account if i["currency"] == "USDT"]:
+    for i in [i for i in margin_account["accounts"] if i["currency"] == "USDT"]:
         token.borrow_size = Decimal(i["liability"])
         token.avail_size = Decimal(i["available"])
 
@@ -94,7 +94,7 @@ async def main() -> None:
     )
 
     while True:
-        wait_seconds = get_seconds_to_next_minutes(10)
+        wait_seconds = get_seconds_to_next_minutes(15)
 
         logger.info(f"Wait {wait_seconds} to run get_actual_token_stats")
         await asyncio.sleep(wait_seconds)
