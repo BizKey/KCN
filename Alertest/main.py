@@ -38,6 +38,7 @@ async def get_available_funds(
     logger.info("Run get_available_funds")
 
     margin_account = await get_margin_account(access)
+    logger.warning(margin_account)
 
     for i in [i for i in margin_account["accounts"] if i["currency"] == "USDT"]:
         token.borrow_size = Decimal(i["liability"])
@@ -93,8 +94,15 @@ async def main() -> None:
         telegram_bot_chat_id=config("TELEGRAM_BOT_CHAT_ID", cast=Csv(str)),
     )
 
+    
+    await get_actual_token_stats(
+            access,
+            token,
+            telegram,
+        )
+
     while True:
-        wait_seconds = get_seconds_to_next_minutes(23)
+        wait_seconds = get_seconds_to_next_minutes(10)
 
         logger.info(f"Wait {wait_seconds} to run get_actual_token_stats")
         await asyncio.sleep(wait_seconds)
