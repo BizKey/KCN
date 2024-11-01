@@ -1,10 +1,9 @@
 """Balancer."""
 
 import asyncio
-import time
-from urllib.parse import urljoin
+from time import time
+from uuid import uuid4
 
-import aiohttp
 import orjson
 import uvloop
 from Balancer.nats import get_js_context
@@ -13,64 +12,19 @@ from websockets.asyncio.client import ClientConnection, connect
 
 from models import Access, OrderBook, Token
 from nats.js import JetStreamContext
-
-base_uri = "https://api.kucoin.com"
-
-
-async def get_symbol_list() -> list:
-    """Get all tokens in excange."""
-    async with (
-        aiohttp.ClientSession() as session,
-        session.post(
-            urljoin(base_uri, "/api/v2/symbols"),
-            headers={"User-Agent": "kucoin-python-sdk/2"},
-        ) as response,
-    ):
-        return await response.json()
-
-
-async def get_account_list(access: Access) -> list:
-    """Get margin account list token."""
-    uri = "/api/v1/accounts"
-    data_json = ""
-    params = {"type": "margin"}
-    strl = [f"{key}={params[key]}" for key in sorted(params)]
-    data_json += "&".join(strl)
-    uri += "?" + data_json
-    uri_path = uri
-
-    now_time = str(int(time.time()) * 1000)
-    str_to_sign = str(now_time) + "GET" + uri_path
-
-    async with (
-        aiohttp.ClientSession() as session,
-        session.get(
-            urljoin(base_uri, uri),
-            headers={
-                "KC-API-SIGN": access.encrypted(str_to_sign),
-                "KC-API-TIMESTAMP": now_time,
-                "KC-API-PASSPHRASE": access.encrypted(access.passphrase),
-                "KC-API-KEY": access.key,
-                "Content-Type": "application/json",
-                "KC-API-KEY-VERSION": "2",
-                "User-Agent": "kucoin-python-sdk/2",
-            },
-            data=data_json,
-        ) as response,
-    ):
-        return await response.json()
+from tools import get_account_list, get_private_token, get_symbol_list
 
 
 async def init_order_book(
     access: Access,
-    token: Token,
     orderbook: OrderBook,
-) -> OrderBook:
+) -> None:
     """First init order_book."""
     account_list = await get_account_list(access)
+    symbol_list = await get_symbol_list()
 
-    orderbook.fill_order_book(account_list, token)
-    orderbook.fill_base_increment(get_symbol_list())
+    orderbook.fill_order_book(account_list)
+    orderbook.fill_base_increment(symbol_list)
 
 
 async def event(msg: dict, orderbook: OrderBook, js: JetStreamContext) -> None:
@@ -80,13 +34,13 @@ async def event(msg: dict, orderbook: OrderBook, js: JetStreamContext) -> None:
     currency = msg["data"]["currency"]
 
     if (
-        currency != "USDT"
+        currency != "USDT" # ignore income USDT in balance
         and relationevent
         in [
             "margin.hold",
             "margin.setted",
         ]
-        and available != orderbook.order_book[currency]["available"]
+        and available != orderbook.order_book[currency]["available"] # ignore income qeuals available tokens
     ):
         orderbook.order_book[currency]["available"] = available
         await js.publish(
@@ -101,22 +55,65 @@ async def event(msg: dict, orderbook: OrderBook, js: JetStreamContext) -> None:
         )
 
 
+async def set_up_subscribe(websocket: ClientConnection) -> None:
+    """SetUp all subscribe."""
+    await websocket.recv()  # {  "id": "hQvf8jkno",  "type": "welcome"}
+
+    await websocket.send(
+        orjson.dumps(
+            {
+                "id": str(int(time() * 1000)),
+                "type": "subscribe",
+                "topic": "/account/balance",
+                "privateChannel": True,
+            },
+        ).decode(),
+    )
+
+
+async def get_url_websocket(access: Access) -> str:
+    """SetUp and get url for websocket."""
+    private_token = await get_private_token(access)["data"]
+
+    endpoint = private_token["instanceServers"][0]["endpoint"]
+    token = private_token["token"]
+
+    return f"{endpoint}?token={token}&connectId={str(uuid4()).replace('-', '')}"
+
+
 async def main() -> None:
     """Main func in microservice."""
     access = Access(
         key=config("KEY", cast=str),
         secret=config("SECRET", cast=str),
         passphrase=config("PASSPHRASE", cast=str),
+        base_uri="https://api.kucoin.com",
     )
-    token = Token(currency=config("ALLCURRENCY", cast=Csv(str)))
+
+    token = Token(
+        currency=config("ALLCURRENCY", cast=Csv(str)),
+    )
+
     orderbook = OrderBook(token=token)
 
-    await init_order_book(access, token, orderbook)
+    await init_order_book(access, orderbook)
 
     js = await get_js_context()
 
     # Send first initial balance from excange
-    await orderbook.send_balance(orderbook, js)
+    await orderbook.send_balance(js)
+
+    url = await get_url_websocket(access)
+
+    async with connect(
+        url,
+        max_queue=1024,
+    ) as websocket:
+        await set_up_subscribe(websocket, token)
+
+        while True:
+            recv = await websocket.recv()
+            await event(orjson.loads(recv)["data"], js, token)
 
 
 if __name__ == "__main__":

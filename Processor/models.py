@@ -127,20 +127,3 @@ class Token:
         self.del_tokens = [
             used for used in self.trade_currency if used not in self.accept_tokens
         ]
-
-
-class Telegram:
-    """Class for store access to telegram."""
-
-    def __init__(self, telegram_bot_key: str, telegram_bot_chat_id: str) -> None:
-        """Init API KEY for telegram."""
-        self.telegram_bot_key = telegram_bot_key
-        self.telegram_bot_chat_id: list = telegram_bot_chat_id
-
-    def get_telegram_url(self: Self) -> str:
-        """Return telegram url."""
-        return f"https://api.telegram.org/bot{self.telegram_bot_key}/sendMessage"
-
-    def get_bot_chat_id(self: Self) -> list:
-        """Return list chat id users."""
-        return self.telegram_bot_chat_id
