@@ -81,7 +81,7 @@ async def send_telegram_msg(telegram: Telegram, text: str) -> None:
 MAX_HOUR = 23
 
 
-def check_max_hour(start: pendulum.datetime.DateTime) -> int:
+def check_max_hour(start: pendulum.datetime) -> int:
     """Check if hour is more when MAX_HOUR."""
     hour = start.hour + 1
 
