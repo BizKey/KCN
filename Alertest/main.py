@@ -94,7 +94,7 @@ async def main() -> None:
     )
 
     while True:
-        wait_seconds = get_seconds_to_next_minutes(15)
+        wait_seconds = get_seconds_to_next_minutes(23)
 
         logger.info(f"Wait {wait_seconds} to run get_actual_token_stats")
         await asyncio.sleep(wait_seconds)
