@@ -24,7 +24,7 @@ def get_telegram_msg(token: Token) -> str:
 <i>USDT</i>:{token.avail_size:.2f}
 <i>BORROWING USDT</i>:{token.get_clear_borrow():.2f} ({token.get_percent_borrow():.2f}%)
 <i>ALL TOKENS</i>:{token.get_len_accept_tokens()}
-<i>USED TOKENS</i>({token.get_trade_currency()})
+<i>USED TOKENS</i>({token.get_len_trade_currency()})
 <i>DELETED</i>({token.get_len_del_tokens()}):{",".join(token.del_tokens)}
 <i>NEW</i>({token.get_len_new_tokens()}):{",".join(token.new_tokens)}
 <i>IGNORE</i>({token.get_len_ignore_currency}):{",".join(token.ignore_currency)}"""
