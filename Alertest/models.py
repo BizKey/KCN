@@ -76,7 +76,7 @@ class Token:
         return (
             self.get_clear_borrow()
             * 100
-            / (self.trade_currency * float(self.base_keep))
+            / (self.get_len_trade_currency * self.base_keep)
         )
 
     def get_len_trade_currency(self: Self) -> int:
