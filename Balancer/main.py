@@ -20,7 +20,7 @@ async def init_order_book(
     orderbook: OrderBook,
 ) -> None:
     """First init order_book."""
-    account_list = await get_account_list(access)
+    account_list = await get_account_list(access, {"type": "margin"})
     symbol_list = await get_symbol_list()
 
     orderbook.fill_order_book(account_list)
@@ -29,18 +29,22 @@ async def init_order_book(
 
 async def event(msg: dict, orderbook: OrderBook, js: JetStreamContext) -> None:
     """Work with change amount of balance on exchange."""
-    relationevent = msg["data"]["relationEvent"]
-    available = msg["data"]["available"]
-    currency = msg["data"]["currency"]
+    data = msg["data"]
+    relationevent = data["relationEvent"]
+    available = data["available"]
+    currency = data["currency"]
 
     if (
-        currency != "USDT" # ignore income USDT in balance
+        currency != "USDT"  # ignore income USDT in balance
         and relationevent
         in [
             "margin.hold",
             "margin.setted",
         ]
-        and available != orderbook.order_book[currency]["available"] # ignore income qeuals available tokens
+        and available
+        != orderbook.order_book[currency][
+            "available"
+        ]  # ignore income qeuals available tokens
     ):
         orderbook.order_book[currency]["available"] = available
         await js.publish(
@@ -73,7 +77,7 @@ async def set_up_subscribe(websocket: ClientConnection) -> None:
 
 async def get_url_websocket(access: Access) -> str:
     """SetUp and get url for websocket."""
-    private_token = await get_private_token(access)["data"]
+    private_token = await get_private_token(access)
 
     endpoint = private_token["instanceServers"][0]["endpoint"]
     token = private_token["token"]

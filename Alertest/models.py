@@ -21,7 +21,7 @@ class Access:
         """Encrypted msg for exchange."""
         return b64encode(
             hmac.new(
-                self.secret.encode('utf-8'),
+                self.secret.encode("utf-8"),
                 msg.encode("utf-8"),
                 hashlib.sha256,
             ).digest(),
@@ -103,7 +103,7 @@ class Token:
         """Remove postfix."""
         return symbol.replace(postfix, "")
 
-    def save_accept_tokens(self: Self, all_token_in_excange: list) -> None:
+    def save_accept_tokens(self: Self, all_token_in_excange: dict) -> None:
         """Save all accepted token."""
         self.accept_tokens = [
             self.remove_postfix(token_in_excange["symbol"])
@@ -114,7 +114,7 @@ class Token:
             not in self.ignore_currency
         ]
 
-    def save_new_tokens(self: Self, all_token_in_excange: list) -> None:
+    def save_new_tokens(self: Self, all_token_in_excange: dict) -> None:
         """."""
         self.new_tokens = [
             self.remove_postfix(token_in_excange["symbol"])

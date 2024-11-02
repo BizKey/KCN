@@ -26,7 +26,7 @@ class Access:
         """Encrypted msg for exchange."""
         return b64encode(
             hmac.new(
-                self.secret,
+                self.secret.encode("utf-8"),
                 msg.encode("utf-8"),
                 hashlib.sha256,
             ).digest(),
@@ -141,7 +141,7 @@ class OrderBook:
         """Init order book by symbol from config by available 0."""
         self.order_book: dict = {s: {"available": 0} for s in token.trade_currency}
 
-    def fill_order_book(self: Self, account_list: list) -> None:
+    def fill_order_book(self: Self, account_list: dict) -> None:
         """Fill real available from exchange."""
         self.order_book: dict = {
             account["currency"]: {"available": account["available"]}
@@ -149,7 +149,7 @@ class OrderBook:
             if account["currency"] in self.order_book
         }
 
-    def fill_base_increment(self: Self, symbol_increments: list) -> None:
+    def fill_base_increment(self: Self, symbol_increments: dict) -> None:
         """Fill real baseincrement from exchange.
 
         after:

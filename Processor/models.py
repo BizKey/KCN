@@ -21,7 +21,7 @@ class Access:
         """Encrypted msg for exchange."""
         return b64encode(
             hmac.new(
-                self.secret,
+                self.secret.encode("utf-8"),
                 msg.encode("utf-8"),
                 hashlib.sha256,
             ).digest(),
