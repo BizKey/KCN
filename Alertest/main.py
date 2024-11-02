@@ -27,7 +27,7 @@ def get_telegram_msg(token: Token) -> str:
 <i>USED TOKENS</i>({token.get_len_trade_currency()})
 <i>DELETED</i>({token.get_len_del_tokens()}):{",".join(token.del_tokens)}
 <i>NEW</i>({token.get_len_new_tokens()}):{",".join(token.new_tokens)}
-<i>IGNORE</i>({token.get_len_ignore_currency}):{",".join(token.ignore_currency)}"""
+<i>IGNORE</i>({token.get_len_ignore_currency()}):{",".join(token.ignore_currency)}"""
 
 
 async def get_available_funds(
