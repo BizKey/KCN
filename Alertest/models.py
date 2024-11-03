@@ -115,11 +115,12 @@ class Token:
         ]
 
     def save_new_tokens(self: Self, all_token_in_excange: dict) -> None:
-        """."""
+        """Get all new token for trade."""
         self.new_tokens = [
             self.remove_postfix(token_in_excange["symbol"])
             for token_in_excange in all_token_in_excange
             if self.remove_postfix(token_in_excange["symbol"]) not in self.accept_tokens
+            and token_in_excange["quoteCurrency"] == "USDT"
         ]
 
     def save_del_tokens(self: Self) -> None:

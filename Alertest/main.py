@@ -24,7 +24,7 @@ def get_telegram_msg(token: Token) -> str:
 <i>USDT</i>:{token.avail_size:.2f}
 <i>BORROWING USDT</i>:{token.get_clear_borrow():.2f} ({token.get_percent_borrow():.2f}%)
 <i>ALL TOKENS</i>:{token.get_len_accept_tokens()}
-<i>USED TOKENS</i>({token.get_len_trade_currency()})
+<i>USED TOKENS</i>({token.get_len_trade_currency()}):
 <i>DELETED</i>({token.get_len_del_tokens()}):{",".join(token.del_tokens)}
 <i>NEW</i>({token.get_len_new_tokens()}):{",".join(token.new_tokens)}
 <i>IGNORE</i>({token.get_len_ignore_currency()}):{",".join(token.ignore_currency)}"""
@@ -38,7 +38,6 @@ async def get_available_funds(
     logger.info("Run get_available_funds")
 
     margin_account = await get_margin_account(access, {"quoteCurrency": "USDT"})
-    logger.warning(margin_account)
 
     for i in [i for i in margin_account["accounts"] if i["currency"] == "USDT"]:
         token.borrow_size = Decimal(i["liability"])
