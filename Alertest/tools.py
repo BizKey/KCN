@@ -123,9 +123,10 @@ async def send_telegram_msg(telegram: Telegram, text: str) -> None:
                     "disable_notification": True,
                     "text": text,
                 },
-            ),
+            ) as resp,
         ):
-            pass
+            response = await resp.read()
+            logger.info(response)
 
 
 MAX_HOUR = 23
