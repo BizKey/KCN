@@ -122,7 +122,7 @@ class Token:
             if token_in_excange["quoteCurrency"] == "USDT"
             and token_in_excange["isMarginEnabled"]
             and self.remove_postfix(token_in_excange["symbol"])
-            not in self.accept_tokens + self.ignore_currency
+            not in [self.trade_currency + self.ignore_currency]
         ]
 
     def save_del_tokens(self: Self) -> None:
