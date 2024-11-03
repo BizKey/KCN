@@ -119,8 +119,7 @@ class Token:
         self.new_tokens = [
             self.remove_postfix(token_in_excange["symbol"])
             for token_in_excange in all_token_in_excange
-            if self.remove_postfix(token_in_excange["symbol"]) not in self.accept_tokens
-            and token_in_excange["quoteCurrency"] == "USDT"
+            if token_in_excange["quoteCurrency"] == "USDT"
             and token_in_excange["isMarginEnabled"]
         ]
 
