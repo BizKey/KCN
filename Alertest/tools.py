@@ -74,7 +74,7 @@ def get_headers(
 async def get_symbol_list(
     access: Access,
     *,
-    method: str = "POST",
+    method: str = "GET",
     uri: str = "/api/v2/symbols",
 ) -> dict:
     """Get all tokens in excange."""

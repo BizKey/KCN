@@ -99,7 +99,7 @@ async def get_symbol_list(
     access: Access,
     *,
     uri: str = "/api/v2/symbols",
-    method: str = "POST",
+    method: str = "GET",
 ) -> dict:
     """Get all tokens in excange."""
     return await request(
