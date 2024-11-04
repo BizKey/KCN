@@ -5,7 +5,7 @@ from decimal import ROUND_DOWN, Decimal
 
 import orjson
 import uvloop
-from decouple import config
+from decouple import Csv, config
 from loguru import logger
 from Processor.nats import get_js_context
 
@@ -48,6 +48,7 @@ async def main() -> None:
 
     token = Token(
         base_keep=Decimal(config("BASE_KEEP", cast=int)),
+        ignore_currency=config("IGNORECURRENCY", cast=Csv(str)),
     )
 
     ledger = {}

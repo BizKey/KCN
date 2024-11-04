@@ -1,6 +1,7 @@
 """Balancer."""
 
 import asyncio
+from decimal import Decimal
 from time import time
 from uuid import uuid4
 
@@ -96,6 +97,8 @@ async def main() -> None:
 
     token = Token(
         currency=config("ALLCURRENCY", cast=Csv(str)),
+        ignore_currency=config("IGNORECURRENCY", cast=Csv(str)),
+        base_keep=Decimal(config("BASE_KEEP", cast=int)),
     )
 
     orderbook = OrderBook(token=token)
