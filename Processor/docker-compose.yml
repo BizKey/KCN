@@ -5,8 +5,8 @@ services:
     container_name: kcn_processor
     tty: true
     restart: always
-    links:
-     - nats:nats
+    # links:
+    #  - nats:nats
     environment:
       - CURRENCY=OP,KCS,WIF,IMX,SUI,APT,ICP,BTC,APE,FRONT
 
