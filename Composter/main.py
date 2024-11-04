@@ -1,6 +1,7 @@
 """Composter."""
 
 import asyncio
+from decimal import Decimal
 from time import time
 from uuid import uuid4
 
@@ -75,6 +76,8 @@ async def main() -> None:
         time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
         base_stable=config("BASE_STABLE", cast=str, default="USDT"),
         currency=config("ALLCURRENCY", cast=Csv(str)),
+        ignore_currency=config("IGNORECURRENCY", cast=Csv(str)),
+        base_keep=Decimal(config("BASE_KEEP", cast=int)),
     )
 
     token.init_history()
