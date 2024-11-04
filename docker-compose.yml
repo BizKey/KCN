@@ -1,7 +1,7 @@
 services:
-  composter_1:
+  kcn_composter:
     image: kizyanov/kcn_composter:latest
-    container_name: kcn_composter_1
+    container_name: kcn_composter
     tty: true
     restart: always
     depends_on:
@@ -12,94 +12,108 @@ services:
      - nats:nats
     env_file:
       - .env
-    environment:
-      - START_POS=0
-      - COUNT_POS=20
 
-  composter_2:
-    image: kizyanov/kcn_composter:latest
-    container_name: kcn_composter_2
-    tty: true
-    restart: always
-    depends_on:
-     - balancer
-     - processor
-     - nats
-    links:
-     - nats:nats
-    env_file:
-      - .env
-    environment:
-      - START_POS=20
-      - COUNT_POS=20
+  # composter_1:
+  #   image: kizyanov/kcn_composter:latest
+  #   container_name: kcn_composter_1
+  #   tty: true
+  #   restart: always
+  #   depends_on:
+  #    - balancer
+  #    - processor
+  #    - nats
+  #   links:
+  #    - nats:nats
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - START_POS=0
+  #     - COUNT_POS=20
 
-  composter_3:
-    image: kizyanov/kcn_composter:latest
-    container_name: kcn_composter_3
-    tty: true
-    restart: always
-    depends_on:
-     - balancer
-     - processor
-     - nats
-    links:
-     - nats:nats
-    env_file:
-      - .env
-    environment:
-      - START_POS=40
-      - COUNT_POS=20
+  # composter_2:
+  #   image: kizyanov/kcn_composter:latest
+  #   container_name: kcn_composter_2
+  #   tty: true
+  #   restart: always
+  #   depends_on:
+  #    - balancer
+  #    - processor
+  #    - nats
+  #   links:
+  #    - nats:nats
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - START_POS=20
+  #     - COUNT_POS=20
 
-  composter_4:
-    image: kizyanov/kcn_composter:latest
-    container_name: kcn_composter_4
-    tty: true
-    restart: always
-    depends_on:
-     - balancer
-     - processor
-     - nats
-    links:
-     - nats:nats
-    env_file:
-      - .env
-    environment:
-      - START_POS=60
-      - COUNT_POS=20
+  # composter_3:
+  #   image: kizyanov/kcn_composter:latest
+  #   container_name: kcn_composter_3
+  #   tty: true
+  #   restart: always
+  #   depends_on:
+  #    - balancer
+  #    - processor
+  #    - nats
+  #   links:
+  #    - nats:nats
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - START_POS=40
+  #     - COUNT_POS=20
 
-  composter_5:
-    image: kizyanov/kcn_composter:latest
-    container_name: kcn_composter_5
-    tty: true
-    restart: always
-    depends_on:
-     - balancer
-     - processor
-     - nats
-    links:
-     - nats:nats
-    env_file:
-      - .env
-    environment:
-      - START_POS=80
-      - COUNT_POS=20
+  # composter_4:
+  #   image: kizyanov/kcn_composter:latest
+  #   container_name: kcn_composter_4
+  #   tty: true
+  #   restart: always
+  #   depends_on:
+  #    - balancer
+  #    - processor
+  #    - nats
+  #   links:
+  #    - nats:nats
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - START_POS=60
+  #     - COUNT_POS=20
 
-  composter_6:
-    image: kizyanov/kcn_composter:latest
-    container_name: kcn_composter_6
-    tty: true
-    restart: always
-    depends_on:
-     - balancer
-     - processor
-     - nats
-    links:
-     - nats:nats
-    env_file:
-      - .env
-    environment:
-      - START_POS=100
-      - COUNT_POS=20
+  # composter_5:
+  #   image: kizyanov/kcn_composter:latest
+  #   container_name: kcn_composter_5
+  #   tty: true
+  #   restart: always
+  #   depends_on:
+  #    - balancer
+  #    - processor
+  #    - nats
+  #   links:
+  #    - nats:nats
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - START_POS=80
+  #     - COUNT_POS=20
+
+  # composter_6:
+  #   image: kizyanov/kcn_composter:latest
+  #   container_name: kcn_composter_6
+  #   tty: true
+  #   restart: always
+  #   depends_on:
+  #    - balancer
+  #    - processor
+  #    - nats
+  #   links:
+  #    - nats:nats
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - START_POS=100
+  #     - COUNT_POS=20
 
   orderest:
     image: kizyanov/kcn_orderest:latest
