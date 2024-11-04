@@ -6,13 +6,13 @@ from uuid import uuid4
 
 import orjson
 import uvloop
-from Composter.nats import get_js_context
 from decouple import Csv, config
 from loguru import logger
+from nats.js import JetStreamContext
 from websockets.asyncio.client import ClientConnection, connect
 
 from models import Token
-from nats.js import JetStreamContext
+from natslocal import get_js_context
 from tools import divide_chunks, get_public_token
 
 

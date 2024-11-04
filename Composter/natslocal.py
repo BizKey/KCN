@@ -1,7 +1,6 @@
 """Nats tools for get js context."""
 
 from loguru import logger
-
 from nats.aio.client import Client
 from nats.js import JetStreamContext
 
