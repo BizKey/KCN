@@ -9,6 +9,7 @@ from loguru import logger
 
 from models import Access, Telegram, Token
 from tools import (
+    get_filled_order_list,
     get_margin_account,
     get_seconds_to_next_minutes,
     get_symbol_list,
@@ -67,6 +68,12 @@ async def get_actual_token_stats(
     msg = get_telegram_msg(token)
     logger.warning(msg)
     await send_telegram_msg(telegram, msg)
+
+    orders = await get_filled_order_list(
+        access,
+        {"status": "done", "type": "limit", "tradeType": "MARGIN_TRADE"},
+    )
+    logger.info(orders)
 
 
 async def main() -> None:
