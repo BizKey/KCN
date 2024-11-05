@@ -22,19 +22,14 @@ DAY_IN_MILLISECONDS = 86400000
 WEEK_IN_MILLISECONDS = DAY_IN_MILLISECONDS * 7
 
 
-def get_now_milliseconds() -> int:
-    """Return now milliseconds."""
-    return round(time() * 1000)
-
-
-def get_start_at_for_day() -> int:
+def get_start_at_for_day(now_mill:int) -> int:
     """Return milliseconds for shift a day."""
-    return get_now_milliseconds() - DAY_IN_MILLISECONDS
+    return now_mill - DAY_IN_MILLISECONDS
 
 
-def get_start_at_for_week() -> int:
+def get_start_at_for_week(now_mill:int) -> int:
     """Return milliseconds for shift a week."""
-    return get_now_milliseconds() - WEEK_IN_MILLISECONDS
+    return now_mill - WEEK_IN_MILLISECONDS
 
 
 def get_telegram_msg(token: Token, bot_profit: dict) -> str:
@@ -50,8 +45,9 @@ def get_telegram_msg(token: Token, bot_profit: dict) -> str:
 <i>NEW</i>({token.get_len_new_tokens()}):{",".join(token.new_tokens)}
 <i>IGNORE</i>({token.get_len_ignore_currency()}):{",".join(token.ignore_currency)}
 
-<i>Bot profit list</i>{",".join([f"{k}:{v:.2f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1])])}
-<i>Bot profit sum</i>:{sum([v for v in bot_profit.values()]):.2f}
+<i>BOT PROFIT LIST</i>
+{",".join([f"{k}:{v:.2f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1])])}
+<i>BOT PROFIT SUM</i>:{sum([v for v in bot_profit.values()]):.2f} USDT
 """
 
 
@@ -163,14 +159,15 @@ async def get_actual_token_stats(
     await get_available_funds(access, token)
     await get_tokens(access, token)
 
-    orders = await get_orders(access, get_start_at_for_day())
+    servertimestamp = await get_server_timestamp(access)
+
+    orders = await get_orders(access, get_start_at_for_day(servertimestamp))
 
     msg = get_telegram_msg(token, calc_bot_profit(orders))
     logger.warning(msg)
     await send_telegram_msg(telegram, msg)
 
-    servertimestamp = await get_server_timestamp(access)
-    logger.info(f"{servertimestamp=}")
+    
 
 
 async def main() -> None:
