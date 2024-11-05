@@ -168,7 +168,7 @@ async def get_actual_token_stats(
         logger.info(f"{k}:{v}")
 
     bot_profit = calc_bot_profit(orders)
-    logger.info(bot_profit)
+    logger.info(",".join([f"{k}:{v:.2f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1])]))
 
 
 async def main() -> None:
