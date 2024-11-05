@@ -142,7 +142,7 @@ def calc_bot_profit(orders: dict) -> dict:
                 case "buy":
                     profit -= compound["deal"]
 
-        hodl_profit = (value[0]["price"] / value[-1]["price"] - 1) * 1000
+        hodl_profit = (value[-1]["price"] / value[0]["price"] - 1) * 1000
         logger.info(f"{order}:{hodl_profit=:.2f}")
         logger.info(f"{profit=}")
 
