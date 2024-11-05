@@ -2,6 +2,7 @@
 
 import asyncio
 from decimal import Decimal
+from time import time
 
 import uvloop
 from decouple import Csv, config
@@ -15,6 +16,24 @@ from tools import (
     get_symbol_list,
     send_telegram_msg,
 )
+
+DAY_IN_MILLISECONDS = 86400000
+WEEK_IN_MILLISECONDS = DAY_IN_MILLISECONDS * 7
+
+
+def get_now_milliseconds() -> int:
+    """Return now milliseconds."""
+    return round(time() * 1000)
+
+
+def get_start_at_for_day() -> int:
+    """Return milliseconds for shift a day."""
+    return get_now_milliseconds() - DAY_IN_MILLISECONDS
+
+
+def get_start_at_for_week() -> int:
+    """Return milliseconds for shift a week."""
+    return get_now_milliseconds() - WEEK_IN_MILLISECONDS
 
 
 def get_telegram_msg(token: Token) -> str:
@@ -55,6 +74,80 @@ async def get_tokens(access: Access, token: Token) -> None:
     token.save_del_tokens()
 
 
+def unpack(saved_orders: dict, orders: list) -> dict:
+    """Unpack orders to used structure."""
+    for order in orders:
+        clean_symbol = Token.remove_postfix(order["symbol"])
+
+        if clean_symbol not in saved_orders:
+            saved_orders[clean_symbol] = []
+
+        saved_orders[clean_symbol].append(
+            {
+                "time": order["orderCreatedAt"],
+                "deal": Decimal(order["dealFunds"]) - Decimal(order["fee"]),
+                "side": order["side"],
+                "price": Decimal(order["price"]),
+            },
+        )
+    return saved_orders
+
+
+async def get_orders(access: Access, startat: int) -> dict:
+    """."""
+    saved_orders = {}
+    orders = await get_filled_order_list(
+        access,
+        {
+            "status": "done",
+            "type": "limit",
+            "tradeType": "MARGIN_TRADE",
+            "pageSize": "500",
+            "startAt": startat,
+        },
+    )
+
+    saved_orders.update(unpack(saved_orders, orders["items"]))
+
+    for i in range(2, orders["totalNum"] + 1):
+        orders = await get_filled_order_list(
+            access,
+            {
+                "status": "done",
+                "type": "limit",
+                "tradeType": "MARGIN_TRADE",
+                "pageSize": "500",
+                "currentPage": i,
+                "startAt": startat,
+            },
+        )
+        saved_orders.update(unpack(saved_orders, orders["items"]))
+
+    # sort by time execution
+    [saved_orders[symbol].sort(key=lambda x: x["time"]) for symbol in saved_orders]
+
+    return saved_orders
+
+
+def calc_bot_profit(orders: dict) -> dict:
+    """Calc bot profit."""
+    result = {}
+    for order, value in orders.items():
+        profit = Decimal("0")
+
+        for compound in value:
+            match compound["side"]:
+                case "sell":
+                    profit += compound["deal"]
+                case "buy":
+                    profit -= compound["deal"]
+
+        hodl_profit = (value[0]["price"] / value[-1]["price"] - 1) * 1000
+
+        result.update({order: profit - hodl_profit})
+    return result
+
+
 async def get_actual_token_stats(
     access: Access,
     token: Token,
@@ -69,11 +162,13 @@ async def get_actual_token_stats(
     logger.warning(msg)
     await send_telegram_msg(telegram, msg)
 
-    orders = await get_filled_order_list(
-        access,
-        {"status": "done", "type": "limit", "tradeType": "MARGIN_TRADE"},
-    )
-    logger.info(orders)
+    orders = await get_orders(access, get_start_at_for_day())
+
+    for k, v in orders.items():
+        logger.info(f"{k}:{v}")
+
+    bot_profit = calc_bot_profit(orders)
+    logger.info(bot_profit)
 
 
 async def main() -> None:
@@ -83,12 +178,14 @@ async def main() -> None:
     in infinity loop to run get_actual_token_stats
     """
     logger.info("Run Alertest microservice")
+
     access = Access(
         key=config("KEY", cast=str),
         secret=config("SECRET", cast=str),
         passphrase=config("PASSPHRASE", cast=str),
         base_uri="https://api.kucoin.com",
     )
+
     token = Token(
         currency=config("ALLCURRENCY", cast=Csv(str)),
         ignore_currency=config("IGNORECURRENCY", cast=Csv(str)),

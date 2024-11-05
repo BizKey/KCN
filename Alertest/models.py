@@ -99,31 +99,32 @@ class Token:
         """Get len of new_tokens."""
         return len(self.new_tokens)
 
-    def remove_postfix(self: Self, symbol: str, postfix: str = "-USDT") -> str:
+    @staticmethod
+    def remove_postfix(symbol: str, postfix: str = "-USDT") -> str:
         """Remove postfix."""
         return symbol.replace(postfix, "")
 
     def save_accept_tokens(self: Self, all_token_in_excange: dict) -> None:
         """Save all accepted token."""
         self.accept_tokens = [
-            self.remove_postfix(token_in_excange["symbol"])
+            Token.remove_postfix(token_in_excange["symbol"])
             for token_in_excange in all_token_in_excange
             if token_in_excange["isMarginEnabled"]
             and token_in_excange["quoteCurrency"] == "USDT"
-            and self.remove_postfix(token_in_excange["symbol"])
+            and Token.remove_postfix(token_in_excange["symbol"])
             not in self.ignore_currency
         ]
 
     def save_new_tokens(self: Self, all_token_in_excange: dict) -> None:
         """Get all new token for trade."""
         self.new_tokens = [
-            self.remove_postfix(token_in_excange["symbol"])
+            Token.remove_postfix(token_in_excange["symbol"])
             for token_in_excange in all_token_in_excange
             if token_in_excange["quoteCurrency"] == "USDT"
             and token_in_excange["isMarginEnabled"]
-            and self.remove_postfix(token_in_excange["symbol"])
+            and Token.remove_postfix(token_in_excange["symbol"])
             not in self.trade_currency
-            and self.remove_postfix(token_in_excange["symbol"])
+            and Token.remove_postfix(token_in_excange["symbol"])
             not in self.ignore_currency
         ]
 
