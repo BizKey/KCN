@@ -177,3 +177,25 @@ async def get_filled_order_list(
             now_time,
         ),
     )
+
+
+async def get_server_timestamp(
+    access: Access,
+    *,
+    uri: str = "/api/v1/timestamp",
+    method: str = "GET",
+) -> dict:
+    """Get timestamp from excange server."""
+    logger.info("Run get_server_timestamp")
+
+    now_time = str(int(time()) * 1000)
+
+    return await request(
+        urljoin(access.base_uri, uri),
+        method,
+        get_headers(
+            access,
+            f"{now_time}{method}{uri}",
+            now_time,
+        ),
+    )

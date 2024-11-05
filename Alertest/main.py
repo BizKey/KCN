@@ -12,6 +12,7 @@ from models import Access, Telegram, Token
 from tools import (
     get_filled_order_list,
     get_margin_account,
+    get_server_timestamp,
     get_seconds_to_next_minutes,
     get_symbol_list,
     send_telegram_msg,
@@ -36,7 +37,7 @@ def get_start_at_for_week() -> int:
     return get_now_milliseconds() - WEEK_IN_MILLISECONDS
 
 
-def get_telegram_msg(token: Token, bot_profit:dict) -> str:
+def get_telegram_msg(token: Token, bot_profit: dict) -> str:
     """Prepare telegram msg."""
     return f"""<b>KuCoin</b>
 
@@ -167,6 +168,9 @@ async def get_actual_token_stats(
     msg = get_telegram_msg(token, calc_bot_profit(orders))
     logger.warning(msg)
     await send_telegram_msg(telegram, msg)
+
+    servertimestamp = await get_server_timestamp()
+    logger.info(f"{servertimestamp=}")
 
 
 async def main() -> None:
