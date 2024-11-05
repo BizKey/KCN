@@ -109,7 +109,7 @@ async def get_orders(access: Access, startat: int) -> dict:
 
     saved_orders.update(unpack(saved_orders, orders["items"]))
 
-    for i in range(2, orders["totalNum"] + 1):
+    for i in range(2, orders["totalPage"] + 1):
         orders = await get_filled_order_list(
             access,
             {
