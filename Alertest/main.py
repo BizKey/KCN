@@ -84,7 +84,7 @@ def unpack(saved_orders: dict, orders: list) -> dict:
 
         saved_orders[clean_symbol].append(
             {
-                "time": order["orderCreatedAt"],
+                "time": order["createdAt"],
                 "deal": Decimal(order["dealFunds"]) - Decimal(order["fee"]),
                 "side": order["side"],
                 "price": Decimal(order["price"]),
