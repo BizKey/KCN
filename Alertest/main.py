@@ -36,7 +36,7 @@ def get_start_at_for_week() -> int:
     return get_now_milliseconds() - WEEK_IN_MILLISECONDS
 
 
-def get_telegram_msg(token: Token) -> str:
+def get_telegram_msg(token: Token, bot_profit:dict) -> str:
     """Prepare telegram msg."""
     return f"""<b>KuCoin</b>
 
@@ -47,7 +47,11 @@ def get_telegram_msg(token: Token) -> str:
 <i>USED TOKENS</i>({token.get_len_trade_currency()}):{",".join(token.trade_currency)}
 <i>DELETED</i>({token.get_len_del_tokens()}):{",".join(token.del_tokens)}
 <i>NEW</i>({token.get_len_new_tokens()}):{",".join(token.new_tokens)}
-<i>IGNORE</i>({token.get_len_ignore_currency()}):{",".join(token.ignore_currency)}"""
+<i>IGNORE</i>({token.get_len_ignore_currency()}):{",".join(token.ignore_currency)}
+
+<i>Bot profit list</i>{",".join([f"{k}:{v:.2f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1])])}
+<i>Bot profit sum</i>:{sum([v for v in bot_profit.values()]):.2f}
+"""
 
 
 async def get_available_funds(
@@ -143,8 +147,6 @@ def calc_bot_profit(orders: dict) -> dict:
                     profit -= compound["deal"]
 
         hodl_profit = (value[-1]["price"] / value[0]["price"] - 1) * 1000
-        logger.info(f"{order}:{hodl_profit=:.2f}")
-        logger.info(f"{profit=}")
 
         result.update({order: profit - hodl_profit})
     return result
@@ -160,17 +162,11 @@ async def get_actual_token_stats(
     await get_available_funds(access, token)
     await get_tokens(access, token)
 
-    msg = get_telegram_msg(token)
-    logger.warning(msg)
-    await send_telegram_msg(telegram, msg)
-
     orders = await get_orders(access, get_start_at_for_day())
 
-    for k, v in orders.items():
-        logger.info(f"{k}:{v}")
-
-    bot_profit = calc_bot_profit(orders)
-    logger.info(",".join([f"{k}:{v:.2f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1])]))
+    msg = get_telegram_msg(token, calc_bot_profit(orders))
+    logger.warning(msg)
+    await send_telegram_msg(telegram, msg)
 
 
 async def main() -> None:
