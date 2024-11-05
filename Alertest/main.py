@@ -169,7 +169,7 @@ async def get_actual_token_stats(
     logger.warning(msg)
     await send_telegram_msg(telegram, msg)
 
-    servertimestamp = await get_server_timestamp()
+    servertimestamp = await get_server_timestamp(access)
     logger.info(f"{servertimestamp=}")
 
 
