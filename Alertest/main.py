@@ -134,6 +134,7 @@ def calc_bot_profit(orders: dict) -> dict:
     """Calc bot profit."""
     result = {}
     for order, value in orders.items():
+        logger.info(f"{order}:{value}")
         profit = Decimal("0")
 
         for compound in value:
