@@ -146,7 +146,8 @@ def calc_bot_profit(orders: dict) -> dict:
 
         hodl_profit = (value[-1]["price"] / value[0]["price"] - 1) * 1000
 
-        result.update({order: profit - hodl_profit})
+        # result.update({order: profit - hodl_profit})
+        result.update({order: profit})
     return result
 
 
