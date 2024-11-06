@@ -46,8 +46,8 @@ def get_telegram_msg(token: Token, bot_profit: dict) -> str:
 <i>IGNORE</i>({token.get_len_ignore_currency()}):{",".join(token.ignore_currency)}
 
 <i>BOT PROFIT LIST</i>
-{",".join([f"{k}:{v:.2f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1])])}
-<i>BOT PROFIT SUM</i>:{sum([v for v in bot_profit.values()]):.2f} USDT
+{",".join([f"{k}:{v:.1f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1], reverse=True)])}
+<i>BOT PROFIT SUM(week)</i>:{sum([v for v in bot_profit.values()]):.2f} USDT
 """
 
 
@@ -161,7 +161,7 @@ async def get_actual_token_stats(
 
     servertimestamp = await get_server_timestamp(access)
 
-    orders = await get_orders(access, get_start_at_for_day(servertimestamp))
+    orders = await get_orders(access, get_start_at_for_week(servertimestamp))
 
     msg = get_telegram_msg(token, calc_bot_profit(orders))
     logger.warning(msg)
