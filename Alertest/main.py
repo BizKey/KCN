@@ -134,7 +134,6 @@ def calc_bot_profit(orders: dict) -> dict:
     """Calc bot profit."""
     result = {}
     for order, value in orders.items():
-        logger.info(f"{order}:{value}")
         profit = Decimal("0")
 
         for compound in value:
@@ -146,8 +145,8 @@ def calc_bot_profit(orders: dict) -> dict:
 
         hodl_profit = (value[-1]["price"] / value[0]["price"] - 1) * 1000
 
-        # result.update({order: profit - hodl_profit})
-        result.update({order: profit})
+        result.update({order: profit - hodl_profit})
+        # result.update({order: profit})
     return result
 
 
