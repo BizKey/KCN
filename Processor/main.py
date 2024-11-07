@@ -101,7 +101,7 @@ async def main() -> None:
             {
                 symbol: {
                     "baseincrement": Decimal(baseincrement),
-                    "available": Decimal(available),
+                    "available": Decimal(available['available']),
                 },
             },
         )
