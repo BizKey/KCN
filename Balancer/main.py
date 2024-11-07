@@ -113,7 +113,7 @@ async def main() -> None:
     url = await get_url_websocket(access)
 
     async with connect(url, max_queue=1024) as websocket:
-        await set_up_subscribe(websocket, token)
+        await set_up_subscribe(websocket)
 
         while True:
             recv = await websocket.recv()
