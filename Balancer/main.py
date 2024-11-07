@@ -117,7 +117,7 @@ async def main() -> None:
 
         while True:
             recv = await websocket.recv()
-            await event(orjson.loads(recv)["data"], js, token)
+            await event(orjson.loads(recv), js, token)
 
 
 if __name__ == "__main__":
