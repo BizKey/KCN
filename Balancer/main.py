@@ -22,7 +22,7 @@ async def init_order_book(
 ) -> None:
     """First init order_book."""
     account_list = await get_account_list(access, {"type": "margin"})
-    symbol_list = await get_symbol_list()
+    symbol_list = await get_symbol_list(access)
 
     orderbook.fill_order_book(account_list)
     orderbook.fill_base_increment(symbol_list)
