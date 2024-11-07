@@ -94,7 +94,7 @@ async def main() -> None:
             available_in_ledger = ledger.get(symbol, {"available": "0"})["available"]
 
         logger.info(
-            f"Change balance:{symbol}\t{available_in_ledger} \t-> {available}",
+            f"Change balance:{symbol}\t{available_in_ledger} \t-> {available['available']}",
         )
 
         ledger.update(
