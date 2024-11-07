@@ -7,10 +7,10 @@ import orjson
 import uvloop
 from decouple import Csv, config
 from loguru import logger
-from Processor.nats import get_js_context
+from nats.aio.client import Msg
 
 from models import Access, Token
-from nats.aio.client import Msg
+from natslocal import get_js_context
 from tools import make_margin_limit_order
 
 

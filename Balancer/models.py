@@ -8,7 +8,6 @@ from typing import Self
 
 import orjson
 from loguru import logger
-
 from nats.js import JetStreamContext
 
 

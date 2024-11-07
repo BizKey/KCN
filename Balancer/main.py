@@ -7,12 +7,12 @@ from uuid import uuid4
 
 import orjson
 import uvloop
-from Balancer.nats import get_js_context
 from decouple import Csv, config
+from nats.js import JetStreamContext
 from websockets.asyncio.client import ClientConnection, connect
 
 from models import Access, OrderBook, Token
-from nats.js import JetStreamContext
+from natslocal import get_js_context
 from tools import get_account_list, get_private_token, get_symbol_list
 
 
@@ -61,7 +61,7 @@ async def event(msg: dict, orderbook: OrderBook, js: JetStreamContext) -> None:
 
 
 async def set_up_subscribe(websocket: ClientConnection) -> None:
-    """SetUp all subscribe."""
+    """SetUp all subscribe to change balance."""
     await websocket.recv()  # {  "id": "hQvf8jkno",  "type": "welcome"}
 
     await websocket.send(
@@ -112,10 +112,7 @@ async def main() -> None:
 
     url = await get_url_websocket(access)
 
-    async with connect(
-        url,
-        max_queue=1024,
-    ) as websocket:
+    async with connect(url, max_queue=1024) as websocket:
         await set_up_subscribe(websocket, token)
 
         while True:

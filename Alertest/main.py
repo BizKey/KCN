@@ -12,8 +12,8 @@ from models import Access, Telegram, Token
 from tools import (
     get_filled_order_list,
     get_margin_account,
-    get_server_timestamp,
     get_seconds_to_next_minutes,
+    get_server_timestamp,
     get_symbol_list,
     send_telegram_msg,
 )
@@ -22,12 +22,12 @@ DAY_IN_MILLISECONDS = 86400000
 WEEK_IN_MILLISECONDS = DAY_IN_MILLISECONDS * 7
 
 
-def get_start_at_for_day(now_mill:int) -> int:
+def get_start_at_for_day(now_mill: int) -> int:
     """Return milliseconds for shift a day."""
     return now_mill - DAY_IN_MILLISECONDS
 
 
-def get_start_at_for_week(now_mill:int) -> int:
+def get_start_at_for_week(now_mill: int) -> int:
     """Return milliseconds for shift a week."""
     return now_mill - WEEK_IN_MILLISECONDS
 
@@ -167,8 +167,6 @@ async def get_actual_token_stats(
     msg = get_telegram_msg(token, calc_bot_profit(orders))
     logger.warning(msg)
     await send_telegram_msg(telegram, msg)
-
-    
 
 
 async def main() -> None:
