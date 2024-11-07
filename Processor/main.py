@@ -41,7 +41,7 @@ async def main() -> None:
     js = await get_js_context()
     access = Access(
         key=config("KEY", cast=str),
-        secret=config("SECRET", cast=str).encode("utf-8"),
+        secret=config("SECRET", cast=str),
         passphrase=config("PASSPHRASE", cast=str),
         base_uri="https://api.kucoin.com",
     )
