@@ -38,6 +38,7 @@ async def main() -> None:
         key=config("KEY", cast=str),
         secret=config("SECRET", cast=str),
         passphrase=config("PASSPHRASE", cast=str),
+        base_uri="https://api.kucoin.com",
     )
 
     while True:
