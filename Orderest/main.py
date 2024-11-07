@@ -42,7 +42,7 @@ async def main() -> None:
     )
 
     while True:
-        servertimestamp = await get_server_timestamp()
+        servertimestamp = await get_server_timestamp(access)
         orders = await get_order_list(
             access,
             params={"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"},
