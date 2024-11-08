@@ -92,7 +92,7 @@ def save_by_symbol(saved_orders: dict, order: dict) -> dict:
 
 def unpack(saved_orders: dict, orders: list) -> dict:
     """Unpack orders to used structure."""
-    saved_orders = {}
+
     for order in orders:
         saved_orders = save_by_symbol(saved_orders, order)
 
