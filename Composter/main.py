@@ -88,9 +88,20 @@ async def main() -> None:
     ) as websocket:
         await set_up_subscribe(websocket, token)
 
+        background_tasks = set()
+
         while True:
             recv = await websocket.recv()
-            await event(orjson.loads(recv)["data"], js, token)
+
+            task = asyncio.create_task(
+                event(
+                    orjson.loads(recv)["data"],
+                    js,
+                    token,
+                ),
+            )
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
 
 
 if __name__ == "__main__":

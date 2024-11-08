@@ -8,6 +8,7 @@ from uuid import uuid4
 import orjson
 import uvloop
 from decouple import Csv, config
+from loguru import logger
 from nats.js import JetStreamContext
 from websockets.asyncio.client import ClientConnection, connect
 
@@ -22,13 +23,17 @@ async def init_order_book(
 ) -> None:
     """First init order_book."""
     account_list = await get_account_list(access, {"type": "margin"})
-    symbol_list = await get_symbol_list(access)
-
     orderbook.fill_order_book(account_list)
+
+    symbol_list = await get_symbol_list(access)
     orderbook.fill_base_increment(symbol_list)
 
 
-async def event(msg: dict, orderbook: OrderBook, js: JetStreamContext) -> None:
+async def event(
+    msg: dict,
+    orderbook: OrderBook,
+    js: JetStreamContext,
+) -> None:
     """Work with change amount of balance on exchange."""
     data = msg["data"]
     relationevent = data["relationEvent"]
@@ -58,6 +63,7 @@ async def event(msg: dict, orderbook: OrderBook, js: JetStreamContext) -> None:
                 },
             ),
         )
+        logger.success(f"Success sent:{currency}:{available}")
 
 
 async def set_up_subscribe(websocket: ClientConnection) -> None:
@@ -96,7 +102,7 @@ async def main() -> None:
     )
 
     token = Token(
-         time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
+        time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
         base_stable=config("BASE_STABLE", cast=str, default="USDT"),
         currency=config("ALLCURRENCY", cast=Csv(str)),
         ignore_currency=config("IGNORECURRENCY", cast=Csv(str)),
@@ -117,9 +123,20 @@ async def main() -> None:
     async with connect(url, max_queue=1024) as websocket:
         await set_up_subscribe(websocket)
 
+        background_tasks = set()
+
         while True:
             recv = await websocket.recv()
-            await event(orjson.loads(recv), js, token)
+
+            task = asyncio.create_task(
+                event(
+                    orjson.loads(recv),
+                    orderbook,
+                    js,
+                ),
+            )
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
 
 
 if __name__ == "__main__":

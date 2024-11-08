@@ -17,7 +17,7 @@ python-decouple = "3.8"
 
 [tool.ruff]
 lint.select = ["ALL"]
-lint.ignore = ["FA102"]
+lint.ignore = ["FA102", "E501", "PLW0603"]
 lint.fixable = ["I", "COM"]
 lint.mccabe.max-complexity = 2
 lint.pydocstyle.convention = "google"

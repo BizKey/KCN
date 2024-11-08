@@ -4,6 +4,7 @@ from time import time
 from urllib.parse import urljoin
 
 import aiohttp
+import pendulum
 from loguru import logger
 from orjson import loads
 
@@ -42,28 +43,6 @@ async def request(
                 result = {}
 
         return result
-
-
-async def get_server_timestamp(
-    access: Access,
-    *,
-    uri: str = "/api/v1/timestamp",
-    method: str = "GET",
-) -> dict:
-    """Get timestamp from excange server."""
-    logger.info("Run get_server_timestamp")
-
-    now_time = str(int(time()) * 1000)
-
-    return await request(
-        urljoin(access.base_uri, uri),
-        method,
-        get_headers(
-            access,
-            f"{now_time}{method}{uri}",
-            now_time,
-        ),
-    )
 
 
 def get_headers(
@@ -136,3 +115,19 @@ async def get_order_list(
             now_time,
         ),
     )
+
+
+def get_seconds_to_next_minutes(minutes: int) -> int:
+    """Get next 10:00 minutes."""
+    logger.info("Run get_seconds_to_next_minutes")
+
+    now = pendulum.now("Europe/Moscow")
+
+    if now.minute > minutes:
+        result_minute = 60 - now.minute + minutes
+    elif now.minute < minutes:
+        result_minute = minutes - now.minute
+    else:
+        result_minute = minutes
+
+    return result_minute * 60

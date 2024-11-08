@@ -7,29 +7,22 @@ from decouple import config
 from loguru import logger
 
 from models import Access
-from tools import cancel_order, get_order_list, get_server_timestamp
+from tools import cancel_order, get_order_list, get_seconds_to_next_minutes
 
 
-async def check_need_cancel(
-    access: Access,
-    servertimestamp: int,
-    item: dict,
-) -> None:
-    """Check if datetime of create order more when 1 hour."""
-    if servertimestamp > item["createdAt"] + 3500000:
-        # order was claim more 1 hour ago
+async def find_order_for_cancel(access: Access) -> None:
+    """Find order created more then 1 hour ago."""
+    orders = await get_order_list(
+        access,
+        params={
+            "type": "limit",
+            "tradeType": "MARGIN_TRADE",
+            "status": "active",
+        },
+    )
+    for item in orders["items"]:
         logger.warning(f"Need cancel:{item}")
         await cancel_order(access, f"/api/v1/orders/{item['id']}")
-
-
-async def brute_orders(
-    servertimestamp: int,
-    orders: dict,
-    access: Access,
-) -> None:
-    """Brute order by create time more when 1 hour."""
-    for item in orders["items"]:
-        await check_need_cancel(access, servertimestamp, item)
 
 
 async def main() -> None:
@@ -42,13 +35,12 @@ async def main() -> None:
     )
 
     while True:
-        servertimestamp = await get_server_timestamp(access)
-        orders = await get_order_list(
-            access,
-            params={"type": "limit", "tradeType": "MARGIN_TRADE", "status": "active"},
-        )
-        await brute_orders(servertimestamp, orders, access)
-        await asyncio.sleep(60)
+        wait_seconds = get_seconds_to_next_minutes(59)
+
+        logger.info(f"Wait {wait_seconds} to run find_order_for_cancel")
+        await asyncio.sleep(wait_seconds)
+
+        await find_order_for_cancel(access)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,6 @@
 
 import asyncio
 from decimal import Decimal
-from time import time
 
 import uvloop
 from decouple import Csv, config
@@ -47,7 +46,7 @@ def get_telegram_msg(token: Token, bot_profit: dict) -> str:
 
 <i>BOT PROFIT LIST</i>
 {",".join([f"{k}:{v:.1f}" for k,v in sorted(bot_profit.items(), key=lambda x:x[1], reverse=True)])}
-<i>BOT PROFIT SUM(week)</i>:{sum([v for v in bot_profit.values()]):.2f} USDT
+<i>BOT PROFIT SUM(week)</i>:{sum(list(bot_profit.values())):.2f} USDT
 """
 
 
@@ -75,22 +74,28 @@ async def get_tokens(access: Access, token: Token) -> None:
     token.save_del_tokens()
 
 
+def save_by_symbol(saved_orders: dict, order: dict) -> dict:
+    """Save by symbol."""
+    clean_symbol = Token.remove_postfix(order["symbol"])
+    if clean_symbol not in saved_orders:
+        saved_orders[clean_symbol] = []
+
+    saved_orders[clean_symbol].append(
+        {
+            "time": order["createdAt"],
+            "deal": Decimal(order["dealFunds"]) - Decimal(order["fee"]),
+            "side": order["side"],
+            "price": Decimal(order["price"]),
+        },
+    )
+
+
 def unpack(saved_orders: dict, orders: list) -> dict:
     """Unpack orders to used structure."""
+    saved_orders = {}
     for order in orders:
-        clean_symbol = Token.remove_postfix(order["symbol"])
+        saved_orders = save_by_symbol(saved_orders, order)
 
-        if clean_symbol not in saved_orders:
-            saved_orders[clean_symbol] = []
-
-        saved_orders[clean_symbol].append(
-            {
-                "time": order["createdAt"],
-                "deal": Decimal(order["dealFunds"]) - Decimal(order["fee"]),
-                "side": order["side"],
-                "price": Decimal(order["price"]),
-            },
-        )
     return saved_orders
 
 
@@ -130,23 +135,30 @@ async def get_orders(access: Access, startat: int) -> dict:
     return saved_orders
 
 
+def calc_profit(compound: dict) -> Decimal:
+    """Calc bot profit by history orders data."""
+    return -compound["deal"] if compound["side"] == "buy" else compound["deal"]
+
+
+def calc_profit_vs_hodl(value: list) -> dict:
+    """Calc diff between bot and hodl profit."""
+    profit = Decimal("0")
+
+    for compound in value:
+        profit += calc_profit(compound)
+
+    hodl_profit = (value[-1]["price"] / value[0]["price"] - 1) * 1000
+
+    return {"bot_profit": profit, "hodl_profit": hodl_profit}
+
+
 def calc_bot_profit(orders: dict) -> dict:
     """Calc bot profit."""
     result = {}
     for order, value in orders.items():
-        profit = Decimal("0")
+        profit = calc_profit_vs_hodl(value)
 
-        for compound in value:
-            match compound["side"]:
-                case "sell":
-                    profit += compound["deal"]
-                case "buy":
-                    profit -= compound["deal"]
-
-        hodl_profit = (value[-1]["price"] / value[0]["price"] - 1) * 1000
-
-        result.update({order: profit - hodl_profit})
-        # result.update({order: profit})
+        result.update({order: profit["bot_profit"] - profit["hodl_profit"]})
     return result
 
 
@@ -185,7 +197,7 @@ async def main() -> None:
     )
 
     token = Token(
-         time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
+        time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
         base_stable=config("BASE_STABLE", cast=str, default="USDT"),
         currency=config("ALLCURRENCY", cast=Csv(str)),
         ignore_currency=config("IGNORECURRENCY", cast=Csv(str)),

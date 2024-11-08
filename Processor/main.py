@@ -36,8 +36,62 @@ def get_side_and_size(ledger_data: dict, price: Decimal, token: Token) -> dict:
     return {"side": side, "size": str(size)}
 
 
+async def candle(msg: Msg) -> None:
+    """Collect data of open price each candle by interval."""
+    logger.debug(msg.data.decode())
+    symbol, price_str = orjson.loads(msg.data).popitem()
+
+    # get side and size
+    side_size_data = get_side_and_size(
+        ledger[symbol],
+        Decimal(price_str),
+        token,
+    )
+
+    if float(side_size_data["size"]) != 0.0:
+        # make limit order
+        await make_margin_limit_order(
+            access=access,
+            side=side_size_data["side"],
+            price=price_str,
+            symbol=symbol,
+            size=side_size_data["size"],
+        )
+
+    await msg.ack()
+
+
+async def balance(msg: Msg) -> None:
+    """Collect balance of each tokens."""
+    data = orjson.loads(msg.data)
+
+    symbol = data["symbol"]
+    available = data["available"]
+    baseincrement = data["baseincrement"]
+
+    available_in_ledger = ledger.get(symbol, {"available": "0"})["available"]
+
+    ledger.update(
+        {
+            symbol: {
+                "baseincrement": Decimal(baseincrement),
+                "available": Decimal(available["available"]),
+            },
+        },
+    )
+    await msg.ack()
+
+    logger.success(
+        f"Change balance:{symbol}\t{available_in_ledger} \t-> {available['available']}",
+    )
+
+
 async def main() -> None:
     """Main func in microservice."""
+    logger.info("START PROCESSOR")
+    global ledger, access, token
+    ledger = {}
+
     js = await get_js_context()
     access = Access(
         key=config("KEY", cast=str),
@@ -54,60 +108,9 @@ async def main() -> None:
         base_keep=Decimal(config("BASE_KEEP", cast=int)),
     )
 
-    ledger = {}
-
-    async def candle(msg: Msg) -> None:
-        """Collect data of open price each candle by interval."""
-        symbol, price_str = orjson.loads(msg.data).popitem()
-
-        # get side and size
-        side_size_data = get_side_and_size(
-            ledger[symbol],
-            Decimal(price_str),
-            token,
-        )
-
-        if float(side_size_data["size"]) != 0.0:
-            # make limit order
-            await make_margin_limit_order(
-                access=access,
-                side=side_size_data["side"],
-                price=price_str,
-                symbol=symbol,
-                size=side_size_data["size"],
-            )
-
-        # ack msg
-        await msg.ack()
-
-    async def balance(msg: Msg) -> None:
-        """Collect balance of each tokens."""
-        data = orjson.loads(msg.data)
-
-        symbol = data["symbol"]
-        available = data["available"]
-        baseincrement = data["baseincrement"]
-
-        if symbol in ledger:
-            available_in_ledger = ledger.get(symbol)["available"]
-        else:
-            available_in_ledger = ledger.get(symbol, {"available": "0"})["available"]
-
-        logger.info(
-            f"Change balance:{symbol}\t{available_in_ledger} \t-> {available['available']}",
-        )
-
-        ledger.update(
-            {
-                symbol: {
-                    "baseincrement": Decimal(baseincrement),
-                    "available": Decimal(available['available']),
-                },
-            },
-        )
-        await msg.ack()
-
     await js.add_stream(name="kcn", subjects=["candle", "balance"])
+
+    await js.publish("candle", payload=b'{"test":"test"}')
 
     await js.subscribe("candle", "candle", cb=candle)
     await js.subscribe("balance", "balance", cb=balance)

@@ -128,31 +128,20 @@ async def send_telegram_msg(telegram: Telegram, text: str) -> None:
             pass
 
 
-MAX_HOUR = 23
-
-
-def check_max_hour(start: pendulum.datetime) -> int:
-    """Check if hour is more when MAX_HOUR."""
-    hour = start.hour + 1
-
-    if start.hour == MAX_HOUR:
-        start = pendulum.tomorrow()
-        hour = 0
-
-    return start, hour
-
-
 def get_seconds_to_next_minutes(minutes: int) -> int:
     """Get next 10:00 minutes."""
     logger.info("Run get_seconds_to_next_minutes")
 
-    start = pendulum.now("Europe/Moscow")
+    now = pendulum.now("Europe/Moscow")
 
-    hour = start.hour
-    if start.minute >= minutes:
-        start, hour = check_max_hour(start)
+    if now.minute > minutes:
+        result_minute = 60 - now.minute + minutes
+    elif now.minute < minutes:
+        result_minute = minutes - now.minute
+    else:
+        result_minute = minutes
 
-    return (start.at(minute=minutes, hour=hour) - start).in_seconds()
+    return result_minute * 60
 
 
 async def get_filled_order_list(
