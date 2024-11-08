@@ -77,6 +77,7 @@ async def get_tokens(access: Access, token: Token) -> None:
 def save_by_symbol(saved_orders: dict, order: dict) -> dict:
     """Save by symbol."""
     clean_symbol = Token.remove_postfix(order["symbol"])
+    logger.info(f"{clean_symbol=} {saved_orders=}")
     if clean_symbol not in saved_orders:
         saved_orders[clean_symbol] = []
 
