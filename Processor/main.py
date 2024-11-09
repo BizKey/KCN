@@ -38,53 +38,57 @@ def get_side_and_size(ledger_data: dict, price: Decimal, token: Token) -> dict:
 
 async def candle(msg: Msg) -> None:
     """Collect data of open price each candle by interval."""
-    logger.debug(msg.data.decode())
-    symbol, price_str = orjson.loads(msg.data).popitem()
+    try:
+        logger.debug(msg.data.decode())
+        symbol, price_str = orjson.loads(msg.data).popitem()
 
-    # get side and size
-    side_size_data = get_side_and_size(
-        ledger[symbol],
-        Decimal(price_str),
-        token,
-    )
-
-    if float(side_size_data["size"]) != 0.0:
-        # make limit order
-        await make_margin_limit_order(
-            access=access,
-            side=side_size_data["side"],
-            price=price_str,
-            symbol=symbol,
-            size=side_size_data["size"],
+        # get side and size
+        side_size_data = get_side_and_size(
+            ledger[symbol],
+            Decimal(price_str),
+            token,
         )
 
-    await msg.ack()
+        if float(side_size_data["size"]) != 0.0:
+            # make limit order
+            await make_margin_limit_order(
+                access=access,
+                side=side_size_data["side"],
+                price=price_str,
+                symbol=symbol,
+                size=side_size_data["size"],
+            )
 
+        await msg.ack()
+    except Exception as e:
+        logger.exception(e)
 
 async def balance(msg: Msg) -> None:
     """Collect balance of each tokens."""
-    data = orjson.loads(msg.data)
+    try:
+        data = orjson.loads(msg.data)
 
-    symbol = data["symbol"]
-    available = data["available"]
-    baseincrement = data["baseincrement"]
+        symbol = data["symbol"]
+        available = data["available"]
+        baseincrement = data["baseincrement"]
 
-    available_in_ledger = ledger.get(symbol, {"available": "0"})["available"]
+        available_in_ledger = ledger.get(symbol, {"available": "0"})["available"]
 
-    ledger.update(
-        {
-            symbol: {
-                "baseincrement": Decimal(baseincrement),
-                "available": Decimal(available["available"]),
+        ledger.update(
+            {
+                symbol: {
+                    "baseincrement": Decimal(baseincrement),
+                    "available": Decimal(available["available"]),
+                },
             },
-        },
-    )
-    await msg.ack()
+        )
+        await msg.ack()
 
-    logger.success(
-        f"Change balance:{symbol}\t{available_in_ledger} \t-> {available['available']}",
-    )
-
+        logger.success(
+            f"Change balance:{symbol}\t{available_in_ledger} \t-> {available['available']}",
+        )
+    except Exception as e:
+        logger.exception(e)
 
 async def main() -> None:
     """Main func in microservice."""
