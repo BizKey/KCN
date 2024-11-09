@@ -85,7 +85,7 @@ async def balance(msg: Msg) -> None:
         await msg.ack()
 
         logger.success(
-            f"Change balance:{symbol}\t{available_in_ledger} \t-> {available['available']}",
+            f"Change balance:{symbol}\t{available_in_ledger} \t-> {available}",
         )
     except Exception as e:
         logger.exception(e)
