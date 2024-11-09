@@ -110,8 +110,6 @@ async def main() -> None:
 
     await js.add_stream(name="kcn", subjects=["candle", "balance"])
 
-    await js.publish("candle", payload=b'{"test":"test"}')
-
     await js.subscribe("candle", "candle", cb=candle)
     await js.subscribe("balance", "balance", cb=balance)
 
