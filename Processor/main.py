@@ -64,6 +64,7 @@ async def candle(msg: Msg) -> None:
     except Exception as e:
         logger.exception(e)
 
+
 async def balance(msg: Msg) -> None:
     """Collect balance of each tokens."""
     try:
@@ -90,6 +91,7 @@ async def balance(msg: Msg) -> None:
         )
     except Exception as e:
         logger.exception(e)
+
 
 async def main() -> None:
     """Main func in microservice."""

@@ -53,7 +53,6 @@ async def event(
         ]  # ignore income qeuals available tokens
     ):
         orderbook.order_book[currency]["available"] = available
-        logger.info(f"{orderbook.order_book[currency]['available']=}")
         await js.publish(
             "balance",
             orjson.dumps(
