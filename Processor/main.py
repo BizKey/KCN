@@ -78,7 +78,7 @@ async def balance(msg: Msg) -> None:
             {
                 symbol: {
                     "baseincrement": Decimal(baseincrement),
-                    "available": Decimal(available["available"]),
+                    "available": Decimal(available),
                 },
             },
         )
