@@ -174,6 +174,7 @@ class OrderBook:
     async def send_balance(self: Self, js: JetStreamContext) -> None:
         """Send first run balance state."""
         for symbol, value in self.order_book.items():
+            logger.info(f"{value['available']=}")
             data = {
                 "symbol": f"{symbol}-USDT",
                 "baseincrement": value["baseincrement"],
