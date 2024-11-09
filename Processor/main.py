@@ -42,22 +42,23 @@ async def candle(msg: Msg) -> None:
         logger.debug(msg.data.decode())
         symbol, price_str = orjson.loads(msg.data).popitem()
 
-        # get side and size
-        side_size_data = get_side_and_size(
-            ledger[symbol],
-            Decimal(price_str),
-            token,
-        )
-
-        if float(side_size_data["size"]) != 0.0:
-            # make limit order
-            await make_margin_limit_order(
-                access=access,
-                side=side_size_data["side"],
-                price=price_str,
-                symbol=symbol,
-                size=side_size_data["size"],
+        if symbol in ledger:
+            # get side and size
+            side_size_data = get_side_and_size(
+                ledger[symbol],
+                Decimal(price_str),
+                token,
             )
+
+            if float(side_size_data["size"]) != 0.0:
+                # make limit order
+                await make_margin_limit_order(
+                    access=access,
+                    side=side_size_data["side"],
+                    price=price_str,
+                    symbol=symbol,
+                    size=side_size_data["size"],
+                )
 
         await msg.ack()
     except Exception as e:
