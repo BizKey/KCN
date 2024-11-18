@@ -5,15 +5,15 @@ services:
     tty: true
     restart: always
     depends_on:
-     - balancer
-     - processor
-     - nats
+     - kcn_balancer
+     - kcn_processor
+     - kcn_nats
     links:
-     - nats:nats
+     - kcn_nats:kcn_nats
     env_file:
       - .env
 
-  orderest:
+  kcn_orderest:
     image: kizyanov/kcn_orderest:latest
     container_name: kcn_orderest
     tty: true
@@ -21,10 +21,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - processor
-      - nats
+      - kcn_processor
+      - kcn_nats
 
-  balancer:
+  kcn_balancer:
     image: kizyanov/kcn_balancer:latest
     container_name: kcn_balancer
     tty: true
@@ -32,12 +32,12 @@ services:
     env_file:
       - .env
     depends_on:
-      - processor
-      - nats
+      - kcn_processor
+      - kcn_nats
     links:
-     - nats:nats
+     - kcn_nats:kcn_nats
 
-  processor:
+  kcn_processor:
     image: kizyanov/kcn_processor:latest
     build: .
     container_name: kcn_processor
@@ -46,11 +46,11 @@ services:
     env_file:
       - .env
     depends_on:
-      - nats
+      - kcn_nats
     links:
-     - nats:nats
+     - kcn_nats:kcn_nats
 
-  alertest:
+  kcn_alertest:
     image: kizyanov/kcn_alertest:latest
     container_name: kcn_alertest
     tty: true
@@ -58,10 +58,10 @@ services:
     env_file:
       - .env
       
-  nats:
+  kcn_nats:
     image: nats:2.10.22-alpine3.20
-    container_name: nats
+    container_name: kcn_nats
     restart: always
-    hostname: nats
+    hostname: kcn_nats
     command: --js
 

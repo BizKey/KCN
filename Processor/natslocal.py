@@ -30,7 +30,7 @@ async def get_js_context() -> JetStreamContext:
     nc = Client()
 
     await nc.connect(
-        servers="nats",
+        servers="kcn_nats",
         max_reconnect_attempts=-1,
         reconnected_cb=reconnected_cb,
         disconnected_cb=disconnected_cb,
