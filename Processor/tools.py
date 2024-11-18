@@ -2,7 +2,7 @@
 
 from time import time
 from urllib.parse import urljoin
-from uuid import uuid1
+from uuid import uuid4
 
 import aiohttp
 from loguru import logger
@@ -102,7 +102,7 @@ async def make_margin_limit_order(
     return await margin_limit_order(
         access,
         {
-            "clientOid": str(uuid1()).replace("-", ""),
+            "clientOid": str(uuid4()).replace("-", ""),
             "side": side,
             "symbol": symbol,
             "price": price,

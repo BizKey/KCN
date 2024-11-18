@@ -66,11 +66,9 @@ async def event(
         logger.success(f"Success sent:{currency}:{available}")
 
 
-async def set_up_subscribe(websocket: ClientConnection) -> None:
+async def set_up_subscribe(ws: ClientConnection) -> None:
     """SetUp all subscribe to change balance."""
-    await websocket.recv()  # {  "id": "hQvf8jkno",  "type": "welcome"}
-
-    await websocket.send(
+    await ws.send(
         orjson.dumps(
             {
                 "id": str(int(time() * 1000)),
@@ -120,13 +118,14 @@ async def main() -> None:
 
     url = await get_url_websocket(access)
 
-    async with connect(url, max_queue=1024) as websocket:
-        await set_up_subscribe(websocket)
+    async with connect(url, max_queue=1024) as ws:
+        await ws.recv()  # {  "id": "hQvf8jkno",  "type": "welcome"}
+        await set_up_subscribe(ws)
 
         background_tasks = set()
 
         while True:
-            recv = await websocket.recv()
+            recv = await ws.recv()
 
             task = asyncio.create_task(
                 event(

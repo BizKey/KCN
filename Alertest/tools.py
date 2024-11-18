@@ -134,12 +134,10 @@ def get_seconds_to_next_minutes(minutes: int) -> int:
 
     now = pendulum.now("Europe/Moscow")
 
-    if now.minute > minutes:
+    if now.minute >= minutes:
         result_minute = 60 - now.minute + minutes
-    elif now.minute < minutes:
-        result_minute = minutes - now.minute
     else:
-        result_minute = minutes
+        result_minute = minutes - now.minute
 
     return result_minute * 60
 
