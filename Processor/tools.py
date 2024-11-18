@@ -97,7 +97,7 @@ async def make_margin_limit_order(
     size: str,
 ) -> dict:
     """Make limit order by price."""
-    logger.info("Run make_margin_limit_order")
+    logger.info(f"Run make_margin_limit_order:{side}:{symbol}")
 
     return await margin_limit_order(
         access,
