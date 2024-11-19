@@ -1,4 +1,4 @@
-FROM python:3.12.2-slim-bullseye as builder
+FROM python:3.12.7-slim-bullseye as builder
 
 ENV TZ=Europe/Moscow \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -17,10 +17,10 @@ COPY pyproject.toml pyproject.toml
 COPY poetry.lock poetry.lock
 
 RUN apt-get update && apt-get install --no-install-recommends -y build-essential && \
-    pip install 'poetry==1.8.3' && \
+    pip install 'poetry==1.8.4' && \
     poetry install --only main --no-root --compile && rm -rf $POETRY_CACHE_DIR
 
-FROM python:3.12.2-slim-bullseye as runtime
+FROM python:3.12.7-slim-bullseye as runtime
 
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"

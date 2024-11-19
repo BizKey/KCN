@@ -11,7 +11,7 @@ import uvloop
 from decouple import Csv, config
 from loguru import logger
 from nats.js import JetStreamContext
-from websockets.asyncio.client import ClientConnection, connect
+from websockets import ClientProtocol, connect
 
 from models import Token
 from natslocal import get_js_context
@@ -40,7 +40,7 @@ async def get_url_websocket() -> str:
 
 
 async def tunnel(
-    ws: ClientConnection,
+    ws: ClientProtocol,
     tunnelid: str,
     type_: str,
 ) -> None:
@@ -58,7 +58,7 @@ async def tunnel(
 
 
 async def klines(
-    ws: ClientConnection,
+    ws: ClientProtocol,
     tunnelid: str,
     token: Token,
     tokens: list,
@@ -80,7 +80,7 @@ async def klines(
 
 
 async def set_up_subscribe(
-    ws: ClientConnection,
+    ws: ClientProtocol,
     token: Token,
 ) -> None:
     """SetUp all subscribe."""
@@ -98,7 +98,7 @@ async def set_up_subscribe(
 
 
 async def set_down_subscribe(
-    ws: ClientConnection,
+    ws: ClientProtocol,
     token: Token,
     loop: asyncio.AbstractEventLoop,
 ) -> None:

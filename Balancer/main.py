@@ -10,7 +10,7 @@ import uvloop
 from decouple import Csv, config
 from loguru import logger
 from nats.js import JetStreamContext
-from websockets.asyncio.client import ClientConnection, connect
+from websockets import ClientProtocol, connect
 
 from models import Access, OrderBook, Token
 from natslocal import get_js_context
@@ -66,7 +66,7 @@ async def event(
         logger.success(f"Success sent:{currency}:{available}")
 
 
-async def set_up_subscribe(ws: ClientConnection) -> None:
+async def set_up_subscribe(ws: ClientProtocol) -> None:
     """SetUp all subscribe to change balance."""
     await ws.send(
         orjson.dumps(
