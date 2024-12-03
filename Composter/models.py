@@ -6,10 +6,6 @@ from base64 import b64encode
 from decimal import Decimal
 from typing import Self
 
-import orjson
-from loguru import logger
-from nats.js import JetStreamContext
-
 
 class Access:
     """Class for store access condention to exchange."""
@@ -170,19 +166,3 @@ class OrderBook:
                 and symbol_increment["quoteCurrency"] == "USDT"
             },
         )
-
-    async def send_balance(self: Self, js: JetStreamContext) -> None:
-        """Send first run balance state."""
-        for symbol, value in self.order_book.items():
-            data = {
-                "symbol": f"{symbol}-USDT",
-                "baseincrement": value["baseincrement"],
-                "available": value["available"],
-            }
-            logger.info(
-                f"{data['symbol']}\t{data['baseincrement']}\t{data['available']}",
-            )
-            await js.publish(
-                "balance",
-                orjson.dumps(data),
-            )

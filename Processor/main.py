@@ -1,10 +1,9 @@
-"""Processor."""
+"""KCN Processor."""
 
 import asyncio
 from decimal import ROUND_DOWN, Decimal
 
 import orjson
-import uvloop
 from decouple import Csv, config
 from loguru import logger
 from nats.aio.client import Msg
@@ -50,7 +49,7 @@ async def candle(msg: Msg) -> None:
                 token,
             )
 
-            if float(side_size_data["size"]) != 0.0:
+            if float(side_size_data["size"]) != 0.0:  # check on buy '0' count of tokens
                 # make limit order
                 await make_margin_limit_order(
                     access=access,
@@ -70,7 +69,7 @@ async def balance(msg: Msg) -> None:
     try:
         data = orjson.loads(msg.data)
 
-        symbol = data["symbol"]
+        symbol = data["symbol"]  # "...-USDT"
         available = data["available"]
         baseincrement = data["baseincrement"]
 
@@ -84,13 +83,14 @@ async def balance(msg: Msg) -> None:
                 },
             },
         )
-        await msg.ack()
 
         logger.success(
             f"Change balance:{symbol}\t{available_in_ledger} \t-> {available}",
         )
     except Exception as e:
         logger.exception(e)
+    finally:
+        await msg.ack()
 
 
 async def main() -> None:
@@ -100,13 +100,15 @@ async def main() -> None:
     ledger = {}
 
     js = await get_js_context()
+
+    # Access object
     access = Access(
         key=config("KEY", cast=str),
         secret=config("SECRET", cast=str),
         passphrase=config("PASSPHRASE", cast=str),
         base_uri="https://api.kucoin.com",
     )
-
+    # Token's object
     token = Token(
         time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
         base_stable=config("BASE_STABLE", cast=str, default="USDT"),
@@ -124,5 +126,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-        runner.run(main())
+    asyncio.run(main())

@@ -1,4 +1,4 @@
-"""Balancer."""
+"""KCN Balancer."""
 
 import asyncio
 from decimal import Decimal
@@ -6,7 +6,6 @@ from time import time
 from uuid import uuid4
 
 import orjson
-import uvloop
 from decouple import Csv, config
 from loguru import logger
 from nats.js import JetStreamContext
@@ -47,6 +46,7 @@ async def event(
             "margin.hold",
             "margin.setted",
         ]
+        and currency in orderbook.order_book
         and available
         != orderbook.order_book[currency][
             "available"
@@ -92,6 +92,7 @@ async def get_url_websocket(access: Access) -> str:
 
 async def main() -> None:
     """Main func in microservice."""
+    # Access object
     access = Access(
         key=config("KEY", cast=str),
         secret=config("SECRET", cast=str),
@@ -99,6 +100,7 @@ async def main() -> None:
         base_uri="https://api.kucoin.com",
     )
 
+    # Token's object
     token = Token(
         time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
         base_stable=config("BASE_STABLE", cast=str, default="USDT"),
@@ -139,5 +141,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-        runner.run(main())
+    asyncio.run(main())

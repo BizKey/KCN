@@ -1,8 +1,7 @@
-"""Orderest."""
+"""KCN Orderest."""
 
 import asyncio
 
-import uvloop
 from decouple import config
 from loguru import logger
 
@@ -27,6 +26,7 @@ async def find_order_for_cancel(access: Access) -> None:
 
 async def main() -> None:
     """Main func in microservice."""
+    # Access object
     access = Access(
         key=config("KEY", cast=str),
         secret=config("SECRET", cast=str),
@@ -44,5 +44,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-        runner.run(main())
+    asyncio.run(main())

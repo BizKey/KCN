@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "processor"
+name = "kcn_alertest"
 version = "0.1.0"
 description = ""
 authors = ["''"]
@@ -7,14 +7,11 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "3.12.7"
-aiohttp = { extras = ["speedups"], version = "3.11.6" }
+python = "3.13.0"
+aiohttp = { extras = ["speedups"], version = "3.11.9" }
 loguru = "0.7.2"
-uvloop = "0.21.0"
-orjson = "3.10.11"
+orjson = "3.10.12"
 python-decouple = "3.8"
-setuptools = "75.5.0"
-pendulum = "3.0.0"
 
 [tool.ruff]
 lint.select = ["ALL"]
@@ -22,6 +19,8 @@ lint.ignore = ["FA102", "E501"]
 lint.fixable = ["I", "COM"]
 lint.mccabe.max-complexity = 2
 lint.pydocstyle.convention = "google"
+
+target-version = "py313"
 
 [build-system]
 requires = ["poetry-core"]
