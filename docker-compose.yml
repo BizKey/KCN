@@ -39,7 +39,6 @@ services:
 
   kcn_processor:
     image: kizyanov/kcn_processor:latest
-    build: .
     container_name: kcn_processor
     tty: true
     restart: always
