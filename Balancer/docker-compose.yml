@@ -1,10 +1,20 @@
 services:
-  balancer:
+  kcn_balancer:
     image: kizyanov/kcn_balancer:latest
     build: .
     container_name: kcn_balancer
     tty: true
     restart: always
+    environment:
+      - KEY=123
+      - SECRET=123
+      - PASSPHRASE=123
+      - BASE_KEEP=123
+      - ALLCURRENCY=BTC,ETH
+      - IGNORECURRENCY=123
+      - TELEGRAM_BOT_API_KEY=123
+      - TELEGRAM_BOT_CHAT_ID=123
+
     # links:
     #  - nats:nats
 

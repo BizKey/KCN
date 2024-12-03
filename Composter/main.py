@@ -1,4 +1,4 @@
-"""Composter."""
+"""KCN Composter."""
 
 import asyncio
 import signal
@@ -7,7 +7,6 @@ from time import time
 from uuid import uuid4
 
 import orjson
-import uvloop
 from decouple import Csv, config
 from loguru import logger
 from nats.js import JetStreamContext
@@ -127,6 +126,8 @@ async def main() -> None:
 
     js = await get_js_context()
     url = await get_url_websocket()
+
+    # Token's object
     token = Token(
         time_shift=config("TIME_SHIFT", cast=str, default="1hour"),
         base_stable=config("BASE_STABLE", cast=str, default="USDT"),
@@ -173,5 +174,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
-        runner.run(main())
+    asyncio.run(main())

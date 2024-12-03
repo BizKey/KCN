@@ -1,10 +1,10 @@
 """Tools for Alertest."""
 
+from datetime import UTC, datetime
 from time import time
 from urllib.parse import urljoin
 
 import aiohttp
-import pendulum
 from loguru import logger
 from orjson import loads
 
@@ -132,7 +132,7 @@ def get_seconds_to_next_minutes(minutes: int) -> int:
     """Get next 10:00 minutes."""
     logger.info("Run get_seconds_to_next_minutes")
 
-    now = pendulum.now("Europe/Moscow")
+    now = datetime.now(tz=UTC)
 
     if now.minute >= minutes:
         result_minute = 60 - now.minute + minutes
@@ -140,30 +140,6 @@ def get_seconds_to_next_minutes(minutes: int) -> int:
         result_minute = minutes - now.minute
 
     return result_minute * 60
-
-
-async def get_filled_order_list(
-    access: Access,
-    params: dict,
-    *,
-    method: str = "GET",
-    uri: str = "/api/v1/orders",
-) -> dict:
-    """Get all active orders in excange."""
-    logger.info("Run get_order_list")
-
-    uri += "?" + get_data_json(params)
-    now_time = str(int(time()) * 1000)
-
-    return await request(
-        urljoin(access.base_uri, uri),
-        method,
-        get_headers(
-            access,
-            f"{now_time}{method}{uri}",
-            now_time,
-        ),
-    )
 
 
 async def get_server_timestamp(

@@ -140,15 +140,17 @@ class OrderBook:
 
     def __init__(self: Self, token: Token) -> None:
         """Init order book by symbol from config by available 0."""
-        self.order_book: dict = {s: {"available": 0} for s in token.trade_currency}
+        self.order_book: dict = {s: {"available": "0"} for s in token.trade_currency}
 
     def fill_order_book(self: Self, account_list: dict) -> None:
         """Fill real available from exchange."""
-        self.order_book: dict = {
-            account["currency"]: {"available": account["available"]}
-            for account in account_list
-            if account["currency"] in self.order_book
-        }
+        self.order_book.update(
+            {
+                account["currency"]: {"available": account["available"]}
+                for account in account_list
+                if account["currency"] in self.order_book
+            },
+        )
 
     def fill_base_increment(self: Self, symbol_increments: dict) -> None:
         """Fill real baseincrement from exchange.

@@ -1,10 +1,10 @@
 """Tools for Orderest."""
 
+from datetime import UTC, datetime
 from time import time
 from urllib.parse import urljoin
 
 import aiohttp
-import pendulum
 from loguru import logger
 from orjson import loads
 
@@ -121,7 +121,7 @@ def get_seconds_to_next_minutes(minutes: int) -> int:
     """Get next 10:00 minutes."""
     logger.info("Run get_seconds_to_next_minutes")
 
-    now = pendulum.now("Europe/Moscow")
+    now = datetime.now(tz=UTC)
 
     if now.minute > minutes:
         result_minute = 60 - now.minute + minutes
